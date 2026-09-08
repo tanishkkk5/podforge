@@ -1,12 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Header from "./components/Header";
+
+interface BookEntry {
+  title: string;
+  onAmazon: string;
+  amazonLink: string;
+  onAudible: string;
+}
+
+function emptyBook(): BookEntry {
+  return { title: "", onAmazon: "", amazonLink: "", onAudible: "" };
+}
 
 export default function IntakePage() {
+  return (
+    <Suspense fallback={<div className="wrap" />}>
+      <IntakeForm />
+    </Suspense>
+  );
+}
+
+function IntakeForm() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [sessionInfo, setSessionInfo] = useState<{ host_name: string; scheduled_at: string } | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [onAmazon, setOnAmazon] = useState("");
+  const [books, setBooks] = useState<BookEntry[]>([emptyBook()]);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`/api/sessions/${token}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => {
+        if (body?.session) setSessionInfo(body.session);
+      })
+      .catch(() => {});
+  }, [token]);
+
+  function updateBook(index: number, field: keyof BookEntry, value: string) {
+    setBooks((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  }
+
+  function addBook() {
+    setBooks((prev) => [...prev, emptyBook()]);
+  }
+
+  function removeBook(index: number) {
+    setBooks((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -14,6 +65,11 @@ export default function IntakePage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    formData.append(
+      "books",
+      JSON.stringify(books.filter((b) => b.title.trim().length > 0))
+    );
+    if (token) formData.append("token", token);
 
     try {
       const res = await fetch("/api/submit", {
@@ -39,7 +95,8 @@ export default function IntakePage() {
 
   if (submitted) {
     return (
-      <div className="wrap">
+      <>
+        <Header />
         <div className="success">
           <div className="check">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -59,13 +116,15 @@ export default function IntakePage() {
           </p>
         </div>
         <footer>Applied Frameworks · Profit Streams® Podcast</footer>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="wrap">
+    <>
+      <Header />
       <header className="hero">
+        <div className="hero-inner">
         <p className="kicker">PROFIT STREAMS® PODCAST</p>
         <h1>Let&apos;s get your episode kit ready.</h1>
         <p>
@@ -77,8 +136,35 @@ export default function IntakePage() {
           Takes about 5 minutes. Every field is fine to leave blank if it
           doesn&apos;t apply.
         </p>
+        {sessionInfo && (
+          <p
+            style={{
+              marginTop: 20,
+              padding: "12px 16px",
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid var(--af-teal)",
+              borderRadius: 6,
+              fontSize: 14.5,
+              display: "inline-block",
+              color: "#fff",
+            }}
+          >
+            Recording with <strong>{sessionInfo.host_name}</strong> on{" "}
+            <strong>
+              {new Date(sessionInfo.scheduled_at).toLocaleString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </strong>
+          </p>
+        )}
+        </div>
       </header>
 
+      <div className="wrap">
       <form onSubmit={handleSubmit}>
         {error && <div className="error-banner">{error}</div>}
 
@@ -146,7 +232,7 @@ export default function IntakePage() {
               Or a link to your headshot
               <span className="sub">optional, if you&apos;d rather not upload</span>
             </label>
-            <input type="url" id="headshotLink" name="headshotLink" placeholder="https://" />
+            <input type="text" id="headshotLink" name="headshotLink" placeholder="https://" />
           </div>
         </div>
 
@@ -157,17 +243,17 @@ export default function IntakePage() {
           <div className="row2">
             <div className="field">
               <label htmlFor="siteBiz">Website (business)</label>
-              <input type="url" id="siteBiz" name="siteBiz" placeholder="https://" />
+              <input type="text" id="siteBiz" name="siteBiz" placeholder="e.g. pricingfromthestart.com" />
             </div>
             <div className="field">
               <label htmlFor="sitePersonal">Website (personal)</label>
-              <input type="url" id="sitePersonal" name="sitePersonal" placeholder="https://" />
+              <input type="text" id="sitePersonal" name="sitePersonal" placeholder="e.g. yourname.com" />
             </div>
           </div>
 
           <div className="field">
             <label htmlFor="linkedin">LinkedIn</label>
-            <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/..." />
+            <input type="text" id="linkedin" name="linkedin" placeholder="e.g. linkedin.com/in/yourname" />
           </div>
 
           <div className="field">
@@ -181,50 +267,89 @@ export default function IntakePage() {
 
         <div className="section">
           <h2>Book or published work</h2>
-          <p className="hint">If this doesn&apos;t apply to you, skip ahead.</p>
+          <p className="hint">
+            Add as many as apply — click &quot;Add another book&quot; for each one.
+          </p>
 
-          <div className="field">
-            <label htmlFor="bookTitle">Title</label>
-            <input type="text" id="bookTitle" name="bookTitle" />
-          </div>
+          {books.map((book, i) => (
+            <div className="book-entry" key={i}>
+              {books.length > 1 && (
+                <div className="book-entry-header">
+                  <span>Book {i + 1}</span>
+                  <button
+                    type="button"
+                    className="remove-book"
+                    onClick={() => removeBook(i)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
 
-          <div className="field">
-            <label>Is it available on Amazon?</label>
-            <div className="radio-group">
-              {["Yes", "No", "Not sure"].map((opt) => (
-                <label className="radio-pill" key={opt}>
-                  <input
-                    type="radio"
-                    name="onAmazon"
-                    value={opt}
-                    onChange={() => setOnAmazon(opt)}
-                  />
-                  <span>{opt}</span>
-                </label>
-              ))}
-            </div>
-            <div className={`conditional ${onAmazon === "Yes" ? "show" : ""}`}>
-              <div className="field" style={{ marginTop: 14 }}>
-                <label htmlFor="amazonLink">
-                  Amazon link
-                  <span className="sub">if you have it handy</span>
-                </label>
-                <input type="url" id="amazonLink" name="amazonLink" placeholder="https://amazon.com/..." />
+              <div className="field">
+                <label>Title</label>
+                <input
+                  type="text"
+                  value={book.title}
+                  onChange={(e) => updateBook(i, "title", e.target.value)}
+                />
+              </div>
+
+              <div className="field">
+                <label>Is it available on Amazon?</label>
+                <div className="radio-group">
+                  {["Yes", "No", "Not sure"].map((opt) => (
+                    <label className="radio-pill" key={opt}>
+                      <input
+                        type="radio"
+                        name={`onAmazon-${i}`}
+                        checked={book.onAmazon === opt}
+                        onChange={() => updateBook(i, "onAmazon", opt)}
+                      />
+                      <span>{opt}</span>
+                    </label>
+                  ))}
+                </div>
+                {book.onAmazon === "Yes" && (
+                  <div className="conditional show">
+                    <div className="field" style={{ marginTop: 14 }}>
+                      <label>
+                        Amazon link
+                        <span className="sub">if you have it handy</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={book.amazonLink}
+                        onChange={(e) => updateBook(i, "amazonLink", e.target.value)}
+                        placeholder="https://amazon.com/..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="field">
+                <label>Is it available on Audible?</label>
+                <div className="radio-group">
+                  {["Yes", "No", "Not sure"].map((opt) => (
+                    <label className="radio-pill" key={opt}>
+                      <input
+                        type="radio"
+                        name={`onAudible-${i}`}
+                        checked={book.onAudible === opt}
+                        onChange={() => updateBook(i, "onAudible", opt)}
+                      />
+                      <span>{opt}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          ))}
 
-          <div className="field">
-            <label>Is it available on Audible?</label>
-            <div className="radio-group">
-              {["Yes", "No", "Not sure"].map((opt) => (
-                <label className="radio-pill" key={opt}>
-                  <input type="radio" name="onAudible" value={opt} />
-                  <span>{opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+          <button type="button" className="add-book-btn" onClick={addBook}>
+            + Add another book
+          </button>
         </div>
 
         <div className="section">
@@ -266,6 +391,7 @@ export default function IntakePage() {
       </form>
 
       <footer>Applied Frameworks · Profit Streams® Podcast</footer>
-    </div>
+      </div>
+    </>
   );
 }

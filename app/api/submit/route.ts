@@ -50,7 +50,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Insert the intake record
+    // 2. Parse the books array (multiple books now supported)
+    let books: Array<{ title: string; onAmazon: string; amazonLink: string; onAudible: string }> = [];
+    try {
+      books = JSON.parse(get("books") || "[]");
+    } catch {
+      books = [];
+    }
+
+    // 2a. If a scheduling token was passed, look up its session id
+    let sessionId: string | null = null;
+    const token = get("token");
+    if (token) {
+      const { data: sessionRow } = await supabase
+        .from("recording_sessions")
+        .select("id")
+        .eq("token", token)
+        .single();
+      if (sessionRow) sessionId = sessionRow.id;
+    }
+
+    // 3. Insert the intake record
     const { data: inserted, error: insertError } = await supabase
       .from("guest_intakes")
       .insert({
@@ -65,13 +85,11 @@ export async function POST(req: NextRequest) {
         site_personal: get("sitePersonal"),
         linkedin: get("linkedin"),
         other_links: get("otherLinks"),
-        book_title: get("bookTitle"),
-        on_amazon: get("onAmazon"),
-        amazon_link: get("amazonLink"),
-        on_audible: get("onAudible"),
+        books: books, // jsonb column — see schema update
         resources: get("resources"),
         topics: get("topics"),
         promo: get("promo"),
+        session_id: sessionId,
       })
       .select()
       .single();
@@ -82,6 +100,14 @@ export async function POST(req: NextRequest) {
         { error: "Could not save your submission. Please try again." },
         { status: 500 }
       );
+    }
+
+    // 2b. If this came from a scheduled session, mark it as intake_submitted
+    if (sessionId) {
+      await supabase
+        .from("recording_sessions")
+        .update({ status: "intake_submitted" })
+        .eq("id", sessionId);
     }
 
     // 3. Send notification + confirmation emails via Resend
@@ -100,9 +126,9 @@ export async function POST(req: NextRequest) {
           `${fullName} just submitted the guest intake form.\n\n` +
           `Email: ${email}\n` +
           `Company: ${get("company")}\n` +
-          (get("bookTitle")
-            ? `Book: ${get("bookTitle")} (Amazon: ${get("onAmazon")}, Audible: ${get("onAudible")})\n`
-            : "No book listed.\n") +
+          (books.length > 0
+            ? `Books:\n` + books.map((b) => `- ${b.title} (Amazon: ${b.onAmazon}, Audible: ${b.onAudible})`).join("\n") + "\n"
+            : "No books listed.\n") +
           `Headshot: ${headshotUrl || "Not provided"}\n` +
           `Record ID: ${inserted.id}`,
       });
