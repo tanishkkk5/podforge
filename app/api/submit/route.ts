@@ -131,37 +131,48 @@ export async function POST(req: NextRequest) {
 
     // 3. Send notification + confirmation emails via Resend
     // (Skips silently if RESEND_API_KEY isn't set, so local/dev testing
-    // doesn't require an email provider to be configured yet.)
+    // doesn't require an email provider to be configured yet. Wrapped in
+    // its own try/catch — Resend's free tier only allows sending to your
+    // own verified address unless you add a custom domain, so a test
+    // submission using a different email would otherwise crash the whole
+    // request. A failed email should never lose the guest's actual data.)
     if (process.env.RESEND_API_KEY) {
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      const notifyEmail = process.env.NOTIFY_EMAIL || "tpandey@appliedframeworks.com";
-      const fromAddress = process.env.EMAIL_FROM || "Profit Streams Podcast <onboarding@resend.dev>";
+      try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const notifyEmail = process.env.NOTIFY_EMAIL || "tpandey@appliedframeworks.com";
+        const fromAddress = process.env.EMAIL_FROM || "Profit Streams Podcast <onboarding@resend.dev>";
 
-      await resend.emails.send({
-        from: fromAddress,
-        to: notifyEmail,
-        subject: `New Guest Intake Submitted: ${fullName}`,
-        text:
-          `${fullName} just submitted the guest intake form.\n\n` +
-          `Email: ${email}\n` +
-          `Company: ${get("company")}\n` +
-          (books.length > 0
-            ? `Books:\n` + books.map((b) => `- ${b.title} (Amazon: ${b.onAmazon}, Audible: ${b.onAudible})`).join("\n") + "\n"
-            : "No books listed.\n") +
-          `Headshot: ${headshotUrl || "Not provided"}\n` +
-          `Record ID: ${inserted.id}`,
-      });
+        await resend.emails.send({
+          from: fromAddress,
+          to: notifyEmail,
+          subject: `New Guest Intake Submitted: ${fullName}`,
+          text:
+            `${fullName} just submitted the guest intake form.\n\n` +
+            `Email: ${email}\n` +
+            `Company: ${get("company")}\n` +
+            (books.length > 0
+              ? `Books:\n` + books.map((b) => `- ${b.title} (Amazon: ${b.onAmazon}, Audible: ${b.onAudible})`).join("\n") + "\n"
+              : "No books listed.\n") +
+            `Headshot: ${headshotUrl || "Not provided"}\n` +
+            `Record ID: ${inserted.id}`,
+        });
 
-      await resend.emails.send({
-        from: fromAddress,
-        to: email,
-        subject: "Thanks — you're all set for the Profit Streams® Podcast!",
-        text:
-          `Hi ${fullName.split(" ")[0]},\n\n` +
-          `Thanks for sending over your info ahead of the recording — it's all set on our end.\n\n` +
-          `Looking forward to the conversation!\n\n` +
-          `Best,\nApplied Frameworks · Profit Streams® Podcast`,
-      });
+        await resend.emails.send({
+          from: fromAddress,
+          to: email,
+          subject: "Thanks — you're all set for the Profit Streams® Podcast!",
+          text:
+            `Hi ${fullName.split(" ")[0]},\n\n` +
+            `Thanks for sending over your info ahead of the recording — it's all set on our end.\n\n` +
+            `Looking forward to the conversation!\n\n` +
+            `Best,\nApplied Frameworks · Profit Streams® Podcast`,
+        });
+      } catch (emailErr) {
+        console.error("Email send failed (non-fatal):", emailErr);
+        // Same principle as the Sheets integration above — a failed email
+        // (e.g. Resend sandbox restrictions on unverified domains) should
+        // never cause the guest's actual submission to be lost.
+      }
     }
 
     return NextResponse.json({ status: "ok", id: inserted.id });

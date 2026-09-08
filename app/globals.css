@@ -35,6 +35,7 @@ a { color: var(--af-teal); }
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-wrap: wrap;
 }
 .af-logo { height: 30px; width: auto; }
 .af-header-title {
@@ -43,6 +44,23 @@ a { color: var(--af-teal); }
   font-size: 13px;
   letter-spacing: 0.06em;
   color: var(--af-navy);
+}
+.af-nav {
+  display: flex;
+  gap: 20px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.af-nav a {
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.af-nav a:hover { color: var(--af-teal); }
+@media (max-width: 640px) {
+  .af-nav { margin-left: 0; width: 100%; }
 }
 
 .hero {
