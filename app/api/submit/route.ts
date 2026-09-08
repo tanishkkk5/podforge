@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { appendGuestRow } from "@/lib/googleSheets";
 import { Resend } from "resend";
 
 export const runtime = "nodejs";
@@ -108,6 +109,24 @@ export async function POST(req: NextRequest) {
         .from("recording_sessions")
         .update({ status: "intake_submitted" })
         .eq("id", sessionId);
+    }
+
+    // 2c. Add a row to the Drive-based Guest List sheet (no-ops if not configured)
+    try {
+      await appendGuestRow([
+        new Date().toISOString().slice(0, 10), // date
+        fullName,
+        email,
+        get("company"),
+        books.map((b) => b.title).join(", ") || "—",
+        get("role"),
+        sessionId ? "Via scheduled session" : "Direct submission",
+        "New", // status column — update manually as the guest kit progresses
+      ]);
+    } catch (sheetErr) {
+      console.error("Guest List sheet update failed (non-fatal):", sheetErr);
+      // Don't fail the whole submission over a Sheets issue — the
+      // database record is already saved regardless.
     }
 
     // 3. Send notification + confirmation emails via Resend
