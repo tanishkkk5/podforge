@@ -8,6 +8,8 @@ export default function Header() {
           <a href="/">Guest Intake</a>
           <a href="/admin">Schedule Guest</a>
           <a href="/tools/transcript-check">Transcript Checker</a>
+          <a href="/admin/upload-transcript">Upload Transcript</a>
+          <a href="/tools/ask-archive">Ask Archive</a>
         </nav>
       </div>
     </div>
