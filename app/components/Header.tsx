@@ -10,6 +10,7 @@ export default function Header() {
           <a href="/tools/transcript-check">Transcript Checker</a>
           <a href="/admin/upload-transcript">Upload Transcript</a>
           <a href="/tools/ask-archive">Ask Archive</a>
+          <a href="/admin/guest-kit-generator">Guest Kit Generator</a>
         </nav>
       </div>
     </div>

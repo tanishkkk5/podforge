@@ -1,0 +1,147 @@
+"use client";
+
+import { useState } from "react";
+import Header from "../../components/Header";
+
+export default function GuestKitGeneratorPage() {
+  const [password, setPassword] = useState("");
+  const [transcript, setTranscript] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [hostName, setHostName] = useState("Luke Hohmann");
+  const [episodeNumber, setEpisodeNumber] = useState("");
+  const [chaptersText, setChaptersText] = useState(""); // one per line: "00:00 Intro"
+  const [generating, setGenerating] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function parseChapters() {
+    return chaptersText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const match = line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s+(.*)$/);
+        return match ? { time: match[1], title: match[2] } : null;
+      })
+      .filter(Boolean);
+  }
+
+  async function handleGenerate(e: React.FormEvent) {
+    e.preventDefault();
+    setGenerating(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const res = await fetch("/api/guestkit/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password,
+          transcript,
+          guestName,
+          hostName,
+          episodeNumber,
+          chapters: parseChapters(),
+        }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Something went wrong.");
+      setResult(body);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  return (
+    <>
+      <Header />
+      <header className="hero">
+        <div className="hero-inner">
+          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <h1>Guest Kit Generator</h1>
+          <p>
+            Paste a transcript, and this builds the full guest kit automatically —
+            title, summary, 10 key takeaways, a quote card, and a thumbnail —
+            all in your brand, ready to review before sending to the guest.
+          </p>
+        </div>
+      </header>
+
+      <div className="wrap">
+        <form onSubmit={handleGenerate} style={{ paddingBottom: 100 }}>
+          {error && <div className="error-banner">{error}</div>}
+
+          <div className="section">
+            <div className="field">
+              <label>Admin password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+
+            <div className="row2">
+              <div className="field">
+                <label>Guest name</label>
+                <input type="text" value={guestName} onChange={(e) => setGuestName(e.target.value)} required />
+              </div>
+              <div className="field">
+                <label>Host name</label>
+                <input type="text" value={hostName} onChange={(e) => setHostName(e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Episode number</label>
+              <input type="text" value={episodeNumber} onChange={(e) => setEpisodeNumber(e.target.value)} placeholder="e.g. 51" required />
+            </div>
+
+            <div className="field">
+              <label>
+                Chapters
+                <span className="sub">Optional — one per line, e.g. "03:08 Understanding the System"</span>
+              </label>
+              <textarea
+                value={chaptersText}
+                onChange={(e) => setChaptersText(e.target.value)}
+                style={{ minHeight: 140 }}
+                placeholder={"00:00 Introduction\n03:08 Understanding the System"}
+              />
+            </div>
+
+            <div className="field">
+              <label>Transcript</label>
+              <textarea
+                value={transcript}
+                onChange={(e) => setTranscript(e.target.value)}
+                style={{ minHeight: 300 }}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="submit-row">
+            <button type="submit" disabled={generating}>
+              {generating ? "Generating (this can take ~30-60s)…" : "Generate Guest Kit"}
+            </button>
+          </div>
+        </form>
+
+        {result && (
+          <div className="section" style={{ borderTop: "2px solid var(--af-teal)" }}>
+            <h2>Guest kit ready</h2>
+            <p style={{ marginBottom: 16 }}>
+              <a href={result.url} target="_blank" rel="noreferrer">{result.url}</a>
+            </p>
+            <p className="hint">
+              <strong>Title:</strong> {result.content.title}<br />
+              <strong>Hook:</strong> {result.content.hook}
+            </p>
+          </div>
+        )}
+
+        <footer>Applied Frameworks · Profit Streams® Podcast</footer>
+      </div>
+    </>
+  );
+}
