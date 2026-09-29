@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Header from "../../components/Header";
 
 interface Match {
   episode_name: string;
@@ -49,7 +48,6 @@ export default function AskArchivePage() {
 
   return (
     <>
-      <Header />
       <header className="hero">
         <div className="hero-inner">
           <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>

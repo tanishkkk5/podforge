@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Header from "../../components/Header";
 
 interface Flagged {
   found: string;
@@ -42,7 +41,6 @@ export default function TranscriptCheckPage() {
 
   return (
     <>
-      <Header />
       <header className="hero">
         <div className="hero-inner">
           <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>

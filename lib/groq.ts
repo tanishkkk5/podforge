@@ -9,6 +9,11 @@
  * structured extraction task.
  */
 
+interface ResourceMention {
+  label: string; // e.g. "Acme Corp" or "The Lean Startup by Eric Ries"
+  type: string; // "person" | "company" | "book" | "tool" | "other"
+}
+
 interface ExtractedContent {
   title: string;
   hook: string;
@@ -16,6 +21,7 @@ interface ExtractedContent {
   takeaways: string[]; // always exactly 10
   bestQuote: string;
   guestTitle: string;
+  resources: ResourceMention[]; // named things mentioned that likely need a link
 }
 
 export async function extractEpisodeContent(
@@ -38,10 +44,15 @@ Below is the full raw transcript. Extract the following, and respond with ONLY v
   "summary": "A 2-3 sentence summary of what the episode covers, written in third person",
   "takeaways": ["exactly 10 key takeaways, each a complete sentence capturing a distinct idea from the conversation, ordered roughly by how they appear in the conversation"],
   "bestQuote": "The single most quotable, self-contained line from the guest in the transcript — must be an exact quote, verbatim from the transcript, under 200 characters",
-  "guestTitle": "A short professional title/role for the guest, inferred from how they're introduced or what they discuss (e.g. 'Strategic Portfolio Management Expert')"
+  "guestTitle": "A short professional title/role for the guest, inferred from how they're introduced or what they discuss (e.g. 'Strategic Portfolio Management Expert')",
+  "resources": [
+    {"label": "Every specific named person, company, book, product, or tool mentioned in the conversation that a listener might want to look up — for example a book title with its author, a named company, a named software product, another podcast, an article, or a person other than the host/guest themselves. Do NOT include the host or guest's own name here. Do NOT invent a URL — just identify what should be linked.", "type": "person | company | book | tool | other"}
+  ]
 }
 
 Important: "Profit Streams" must always be written as "Profit Streams®" with the registered trademark symbol, in the title, hook, and summary fields.
+
+For "resources": be thorough — include anything a real listener would plausibly want a link for, even minor mentions. It is fine if this list is empty for a sparse conversation, and fine if it has 10+ entries for a reference-heavy one. Never fabricate a URL — that step happens separately by a human.
 
 Transcript:
 ${transcript}`;
@@ -78,6 +89,12 @@ ${transcript}`;
     throw new Error(
       `Expected exactly 10 takeaways, got ${parsed.takeaways?.length ?? 0}. Response may need manual review.`
     );
+  }
+
+  // Resources are best-effort — default to an empty list rather than fail
+  // the whole generation if the model omits this field.
+  if (!Array.isArray(parsed.resources)) {
+    parsed.resources = [];
   }
 
   return parsed;

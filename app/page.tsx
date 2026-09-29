@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Header from "./components/Header";
 
 interface BookEntry {
   title: string;
@@ -96,7 +95,6 @@ function IntakeForm() {
   if (submitted) {
     return (
       <>
-        <Header />
         <div className="success">
           <div className="check">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -122,7 +120,6 @@ function IntakeForm() {
 
   return (
     <>
-      <Header />
       <header className="hero">
         <div className="hero-inner">
         <p className="kicker">PROFIT STREAMS® PODCAST</p>

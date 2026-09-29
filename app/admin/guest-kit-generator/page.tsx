@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Header from "../../components/Header";
 
 export default function GuestKitGeneratorPage() {
   const [password, setPassword] = useState("");
@@ -59,7 +58,6 @@ export default function GuestKitGeneratorPage() {
 
   return (
     <>
-      <Header />
       <header className="hero">
         <div className="hero-inner">
           <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
@@ -151,6 +149,33 @@ export default function GuestKitGeneratorPage() {
               <strong>Title:</strong> {result.content.title}<br />
               <strong>Hook:</strong> {result.content.hook}
             </p>
+
+            {result.content.resources && result.content.resources.length > 0 && (
+              <div style={{ marginTop: 20 }}>
+                <p style={{ fontWeight: 700, marginBottom: 6 }}>
+                  Resources found — add the real link for each, then copy into the show notes:
+                </p>
+                {result.content.resources.map((r: any, i: number) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex", gap: 10, alignItems: "center",
+                      padding: "8px 0", borderBottom: "1px solid var(--line)", fontSize: 14
+                    }}
+                  >
+                    <span style={{ minWidth: 70, fontSize: 11, textTransform: "uppercase", color: "var(--ink-soft)", fontWeight: 700 }}>
+                      {r.type}
+                    </span>
+                    <span style={{ flex: 1 }}>{r.label}</span>
+                    <input
+                      type="text"
+                      placeholder="paste real link here"
+                      style={{ flex: 1, fontSize: 13, padding: "6px 10px" }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

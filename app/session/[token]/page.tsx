@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Header from "../../components/Header";
 
 interface Session {
   guest_name: string | null;
@@ -45,7 +44,6 @@ export default function SessionPage({ params }: { params: { token: string } }) {
   if (notFound) {
     return (
       <>
-        <Header />
         <div className="success">
           <h1>We couldn&apos;t find that link.</h1>
           <p>
@@ -60,7 +58,6 @@ export default function SessionPage({ params }: { params: { token: string } }) {
   if (!session) {
     return (
       <>
-        <Header />
         <div className="success">
           <p>Loading…</p>
         </div>
@@ -80,7 +77,6 @@ export default function SessionPage({ params }: { params: { token: string } }) {
 
   return (
     <>
-      <Header />
       <header className="hero">
         <div className="hero-inner">
         <p className="kicker">PROFIT STREAMS® PODCAST</p>

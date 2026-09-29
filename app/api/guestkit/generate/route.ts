@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
         takeaways: content.takeaways,
         chapters: parsedChapters,
         best_quote: content.bestQuote,
+        resources: content.resources,
         image_urls: {
           title_card: titleUrl,
           summary_card: summaryUrl,

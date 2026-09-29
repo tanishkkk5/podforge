@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Header from "../../components/Header";
 
 export default function UploadTranscriptPage() {
   const [episodeName, setEpisodeName] = useState("");
@@ -36,7 +35,6 @@ export default function UploadTranscriptPage() {
 
   return (
     <>
-      <Header />
       <header className="hero">
         <div className="hero-inner">
           <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
