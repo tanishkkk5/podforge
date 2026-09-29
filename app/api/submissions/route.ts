@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const password = req.nextUrl.searchParams.get("password");
-  if (password !== process.env.ADMIN_PASSWORD) {
-    return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
-  }
-
+  // Auth is now handled centrally by middleware.ts (session cookie).
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("guest_intakes")

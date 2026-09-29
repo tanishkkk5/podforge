@@ -7,13 +7,9 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { password, guestName, guestEmail, hostName, scheduledAt, createdBy, intakeId } = body;
-
-    // Simple shared-password gate — good enough for a small internal team
-    // (Luke, Jason, Laura, Kevin) without building a full login system.
-    if (password !== process.env.ADMIN_PASSWORD) {
-      return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
-    }
+    const { guestName, guestEmail, hostName, scheduledAt, createdBy, intakeId } = body;
+    // Auth is now handled centrally by middleware.ts (session cookie),
+    // not a per-request password field.
 
     if (!guestEmail || !hostName || !scheduledAt) {
       return NextResponse.json(

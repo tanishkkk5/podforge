@@ -5,7 +5,6 @@ import { useState } from "react";
 const HOSTS = ["Luke Hohmann", "Jason Tanner", "Tanisk Pandey", "Other"];
 
 export default function AdminPage() {
-  const [password, setPassword] = useState("");
   const [createdBy, setCreatedBy] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
@@ -26,7 +25,6 @@ export default function AdminPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          password,
           createdBy,
           guestName,
           guestEmail,
@@ -63,16 +61,6 @@ export default function AdminPage() {
         {error && <div className="error-banner">{error}</div>}
 
         <div className="section">
-          <div className="field">
-            <label>Admin password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
           <div className="field">
             <label>Your name (who's scheduling this)</label>
             <input

@@ -13,7 +13,6 @@ interface Submission {
 }
 
 export default function SubmissionsPage() {
-  const [password, setPassword] = useState("");
   const [submissions, setSubmissions] = useState<Submission[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,7 +25,7 @@ export default function SubmissionsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/submissions?password=${encodeURIComponent(password)}`);
+      const res = await fetch(`/api/submissions`);
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Something went wrong.");
       setSubmissions(body.submissions);
@@ -43,7 +42,6 @@ export default function SubmissionsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          password,
           guestName: submission.full_name,
           guestEmail: submission.email,
           hostName,
@@ -76,11 +74,7 @@ export default function SubmissionsPage() {
       <div className="wrap">
         <div className="section">
           {error && <div className="error-banner">{error}</div>}
-          <div className="field">
-            <label>Admin password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
-          <button type="button" onClick={loadSubmissions} disabled={loading || !password}>
+          <button type="button" onClick={loadSubmissions} disabled={loading}>
             {loading ? "Loading…" : "Load Submissions"}
           </button>
         </div>
