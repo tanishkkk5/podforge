@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { password, guestName, guestEmail, hostName, scheduledAt, createdBy } = body;
+    const { password, guestName, guestEmail, hostName, scheduledAt, createdBy, intakeId } = body;
 
     // Simple shared-password gate — good enough for a small internal team
     // (Luke, Jason, Laura, Kevin) without building a full login system.
@@ -41,6 +41,17 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error("Session creation failed:", error.message);
       return NextResponse.json({ error: "Could not create session." }, { status: 500 });
+    }
+
+    // If this session was created FROM an existing intake submission
+    // (the "reversed flow" — guest filled the form first, we schedule after),
+    // link that submission to this new session so it drops off the
+    // "unscheduled submissions" list.
+    if (intakeId) {
+      await supabase
+        .from("guest_intakes")
+        .update({ session_id: data.id })
+        .eq("id", intakeId);
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;

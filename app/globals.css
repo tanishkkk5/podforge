@@ -1,11 +1,23 @@
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Regular.woff') format('woff');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Bold.woff') format('woff');
+  font-weight: 700;
+}
+
 :root {
-  --af-navy: #14304F;
-  --af-navy-deep: #0E2440;
-  --af-teal: #17ABB7;
-  --af-teal-dark: #0E8A94;
+  /* Real brand colors, sampled directly from the Profit Streams logo/cover art */
+  --af-navy: #014784;
+  --af-navy-deep: #013a6b;
+  --af-teal: #00A1EA;
+  --af-teal-dark: #0089c9;
   --bg: #FFFFFF;
   --card: #FFFFFF;
-  --ink: #1B2733;
+  --ink: #353535;
   --ink-soft: #5B6B7B;
   --line: #E3E8ED;
   --error: #B3452C;
@@ -39,7 +51,7 @@ a { color: var(--af-teal); }
 }
 .af-logo { height: 30px; width: auto; }
 .af-header-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.06em;
@@ -79,7 +91,7 @@ a { color: var(--af-teal); }
   text-transform: uppercase;
 }
 h1 {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: clamp(28px, 4.5vw, 40px);
   line-height: 1.2;
@@ -107,7 +119,7 @@ form { padding: 8px 24px 100px; max-width: 720px; margin: 0 auto; }
 }
 .section:last-of-type { border-bottom: none; }
 .section h2 {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 21px;
   color: var(--af-navy);
@@ -199,7 +211,7 @@ input:focus, textarea:focus, select:focus {
 .conditional.show { display: block; }
 
 button[type=submit], button[type=button] {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 15px;
   color: #fff;

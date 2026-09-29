@@ -10,6 +10,7 @@ export default function GuestKitGeneratorPage() {
   const [hostName, setHostName] = useState("Luke Hohmann");
   const [episodeNumber, setEpisodeNumber] = useState("");
   const [chaptersText, setChaptersText] = useState(""); // one per line: "00:00 Intro"
+  const [headshot, setHeadshot] = useState<File | null>(null);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,17 +34,18 @@ export default function GuestKitGeneratorPage() {
     setResult(null);
 
     try {
+      const fd = new FormData();
+      fd.append("password", password);
+      fd.append("transcript", transcript);
+      fd.append("guestName", guestName);
+      fd.append("hostName", hostName);
+      fd.append("episodeNumber", episodeNumber);
+      fd.append("chapters", JSON.stringify(parseChapters()));
+      if (headshot) fd.append("headshot", headshot);
+
       const res = await fetch("/api/guestkit/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          password,
-          transcript,
-          guestName,
-          hostName,
-          episodeNumber,
-          chapters: parseChapters(),
-        }),
+        body: fd,
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Something went wrong.");
@@ -106,6 +108,18 @@ export default function GuestKitGeneratorPage() {
                 onChange={(e) => setChaptersText(e.target.value)}
                 style={{ minHeight: 140 }}
                 placeholder={"00:00 Introduction\n03:08 Understanding the System"}
+              />
+            </div>
+
+            <div className="field">
+              <label>
+                Guest headshot
+                <span className="sub">Optional — appears on the thumbnail and quote card</span>
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setHeadshot(e.target.files?.[0] || null)}
               />
             </div>
 

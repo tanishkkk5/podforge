@@ -22,8 +22,20 @@ function slugify(text: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { password, transcript, guestName, hostName, episodeNumber, chapters } =
-      await req.json();
+    const formData = await req.formData();
+    const password = formData.get("password") as string;
+    const transcript = formData.get("transcript") as string;
+    const guestName = formData.get("guestName") as string;
+    const hostName = formData.get("hostName") as string;
+    const episodeNumber = formData.get("episodeNumber") as string;
+    const chaptersRaw = formData.get("chapters") as string;
+    const chapters = chaptersRaw ? JSON.parse(chaptersRaw) : [];
+
+    const headshotFile = formData.get("headshot") as File | null;
+    const headshotBuffer =
+      headshotFile && headshotFile.size > 0
+        ? Buffer.from(await headshotFile.arrayBuffer())
+        : null;
 
     if (password !== process.env.ADMIN_PASSWORD) {
       return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
@@ -42,14 +54,14 @@ export async function POST(req: NextRequest) {
     const titleBuf = await makeTitleCard(content.title, guestName, hostName, episodeNumber);
     const summaryBuf = await makeSummaryCard(content.hook, content.title, episodeNumber);
     const quoteBuf = await makeQuoteCard(
-      content.bestQuote, guestName, content.guestTitle, content.title, episodeNumber
+      content.bestQuote, guestName, content.guestTitle, content.title, episodeNumber, headshotBuffer
     );
     const takeawayBufs = await makeTakeawaysCarousel(content.takeaways, content.title, episodeNumber);
     const parsedChapters = Array.isArray(chapters) ? chapters : [];
     const chapterBufs = parsedChapters.length
       ? await makeChaptersCards(parsedChapters, content.title, episodeNumber)
       : [];
-    const thumbnailBuf = await makeThumbnail(content.title, guestName, episodeNumber);
+    const thumbnailBuf = await makeThumbnail(content.title, guestName, episodeNumber, headshotBuffer);
 
     // 3. Upload every image to Supabase Storage
     const supabase = getSupabaseAdmin();

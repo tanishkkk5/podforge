@@ -139,10 +139,14 @@ export async function makeSummaryCard(hookLine: string, episodeTitle: string, ep
 }
 
 export async function makeQuoteCard(
-  quote: string, guestName: string, guestTitle: string, episodeTitle: string, epNumber: string
+  quote: string, guestName: string, guestTitle: string, episodeTitle: string, epNumber: string,
+  headshotBuffer: Buffer | null = null
 ): Promise<Buffer> {
   const { canvas, ctx } = await newCanvas();
   await kickerLabel(ctx, `EP-${epNumber} · PROFIT STREAMS® PODCAST`);
+  if (headshotBuffer) {
+    await drawHeadshot(ctx, headshotBuffer, W - 220, H - 220, 140);
+  }
 
   ctx.font = "120px InterBold";
   ctx.fillStyle = WHITE;
@@ -244,8 +248,24 @@ export async function makeChaptersCards(
   return buffers;
 }
 
+async function drawHeadshot(ctx: any, imageBuffer: Buffer | null, x: number, y: number, size: number) {
+  if (!imageBuffer) return;
+  try {
+    const img = await loadImage(imageBuffer);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(img, x, y, size, size);
+    ctx.restore();
+  } catch (e) {
+    console.error("Could not draw headshot:", e);
+  }
+}
+
 export async function makeThumbnail(
-  episodeTitle: string, guestName: string, epNumber: string
+  episodeTitle: string, guestName: string, epNumber: string, headshotBuffer: Buffer | null = null
 ): Promise<Buffer> {
   // Standard podcast thumbnail: 3000x3000, same brand system
   ensureFonts();
@@ -258,10 +278,15 @@ export async function makeThumbnail(
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, size, size);
 
-  const iconPath = path.join(process.cwd(), "public", "af-swoosh-icon.png");
-  if (fs.existsSync(iconPath)) {
-    const icon = await loadImage(iconPath);
-    ctx.drawImage(icon, 180, 180, 220, 220);
+  if (headshotBuffer) {
+    // If we have a real guest photo, feature it instead of just the logo
+    await drawHeadshot(ctx, headshotBuffer, 180, 180, 320);
+  } else {
+    const iconPath = path.join(process.cwd(), "public", "af-swoosh-icon.png");
+    if (fs.existsSync(iconPath)) {
+      const icon = await loadImage(iconPath);
+      ctx.drawImage(icon, 180, 180, 220, 220);
+    }
   }
 
   ctx.font = "700 130px InterBold";
