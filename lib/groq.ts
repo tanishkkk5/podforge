@@ -5,8 +5,13 @@
  *
  * Cost: $0. Groq's free tier requires no credit card — 30 requests/minute,
  * 14,400 requests/day. We make one call per episode, nowhere close to that
- * limit. Uses Llama 3.3 70B, a solid open-source model for this kind of
- * structured extraction task.
+ * limit. Uses GPT-OSS 120B (OpenAI's open-weight model, served by Groq),
+ * a solid model for this kind of structured extraction task.
+ *
+ * Note: Groq periodically retires older model IDs (e.g. llama-3.3-70b-versatile
+ * was decommissioned in August 2026). If this starts 404ing again in the
+ * future, check https://console.groq.com/docs/models for the current
+ * production model list and swap the model string below.
  */
 
 interface ResourceMention {
@@ -64,7 +69,7 @@ ${transcript}`;
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 2000,
       temperature: 0.4,
