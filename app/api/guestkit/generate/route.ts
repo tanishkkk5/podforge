@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { extractEpisodeContent } from "@/lib/claude";
+import { extractEpisodeContent } from "@/lib/groq";
 import {
   makeTitleCard,
   makeSummaryCard,

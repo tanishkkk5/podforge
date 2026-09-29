@@ -1,12 +1,12 @@
 /**
- * Calls the Claude API to turn a raw transcript into structured content:
- * Title, hook, Summary, exactly 10 Key Takeaways, Chapters (if not already
- * provided), and the single best quote to feature.
+ * Calls the Groq API (groq.com — not to be confused with xAI's Grok) to turn
+ * a raw transcript into structured content: Title, hook, Summary, exactly 10
+ * Key Takeaways, and the single best quote.
  *
- * Cost note: uses Claude Haiku (the cheapest current model) since this is
- * a straightforward extraction task, not something requiring the most
- * powerful reasoning. Roughly $0.02-0.03 per episode at typical transcript
- * length.
+ * Cost: $0. Groq's free tier requires no credit card — 30 requests/minute,
+ * 14,400 requests/day. We make one call per episode, nowhere close to that
+ * limit. Uses Llama 3.3 70B, a solid open-source model for this kind of
+ * structured extraction task.
  */
 
 interface ExtractedContent {
@@ -15,7 +15,7 @@ interface ExtractedContent {
   summary: string;
   takeaways: string[]; // always exactly 10
   bestQuote: string;
-  guestTitle: string; // a short professional title/role for the guest
+  guestTitle: string;
 }
 
 export async function extractEpisodeContent(
@@ -23,14 +23,14 @@ export async function extractEpisodeContent(
   guestName: string,
   hostName: string
 ): Promise<ExtractedContent> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    throw new Error("Missing ANTHROPIC_API_KEY environment variable.");
+    throw new Error("Missing GROQ_API_KEY environment variable.");
   }
 
   const prompt = `You are producing show notes for the Profit Streams® Podcast, hosted by ${hostName}. The guest this episode is ${guestName}.
 
-Below is the full raw transcript. Extract the following, and respond with ONLY valid JSON, no other text, no markdown code fences:
+Below is the full raw transcript. Extract the following, and respond with ONLY valid JSON, no other text, no markdown code fences, no explanation before or after:
 
 {
   "title": "A punchy episode title, under 60 characters, capturing the core idea (not generic)",
@@ -46,31 +46,32 @@ Important: "Profit Streams" must always be written as "Profit Streams®" with th
 Transcript:
 ${transcript}`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000,
+      model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: prompt }],
+      max_tokens: 2000,
+      temperature: 0.4,
     }),
   });
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Claude API error (${res.status}): ${errText}`);
+    throw new Error(`Groq API error (${res.status}): ${errText}`);
   }
 
   const data = await res.json();
-  const textBlock = data.content.find((c: any) => c.type === "text");
-  if (!textBlock) throw new Error("No text response from Claude API.");
+  const rawText = data.choices?.[0]?.message?.content;
+  if (!rawText) throw new Error("No text response from Groq API.");
 
-  // Strip any accidental markdown fences before parsing
-  const cleaned = textBlock.text.replace(/```json|```/g, "").trim();
+  // Strip any accidental markdown fences or leading/trailing text before parsing
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const cleaned = jsonMatch ? jsonMatch[0] : rawText.replace(/```json|```/g, "").trim();
   const parsed = JSON.parse(cleaned);
 
   if (!Array.isArray(parsed.takeaways) || parsed.takeaways.length !== 10) {
