@@ -34,9 +34,11 @@ interface ExtractedContent {
 // A full episode transcript alone can easily exceed that on its own, so we
 // truncate to a safe budget rather than let the request fail outright.
 // ~4 characters per token is a reasonable rule of thumb for English text.
-const MAX_TRANSCRIPT_CHARS = 20000; // ~5,000 tokens, leaving room for the
-// prompt instructions (~500 tokens) and the model's response (~1,500-2,000
-// tokens) within the 8,000 TPM budget.
+const MAX_TRANSCRIPT_CHARS = 24000; // ~6,000 tokens, leaving room for the
+// prompt instructions (~400 tokens) and the model's response (~1,500 tokens)
+// within the 8,000 TPM budget. This is close to the real ceiling — pushing
+// much higher risks the same 413 error, since Groq's free tier counts
+// input + output together, per minute, across the whole account.
 
 export async function extractEpisodeContent(
   transcript: string,
