@@ -4,7 +4,6 @@ import { useState } from "react";
 import Header from "../../components/Header";
 
 export default function UploadTranscriptPage() {
-  const [password, setPassword] = useState("");
   const [episodeName, setEpisodeName] = useState("");
   const [sourceType, setSourceType] = useState("main_transcript");
   const [content, setContent] = useState("");
@@ -22,7 +21,7 @@ export default function UploadTranscriptPage() {
       const res = await fetch("/api/transcripts/ingest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password, episodeName, sourceType, content }),
+        body: JSON.stringify({ episodeName, sourceType, content }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Something went wrong.");
@@ -70,16 +69,6 @@ export default function UploadTranscriptPage() {
           )}
 
           <div className="section">
-            <div className="field">
-              <label>Admin password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
             <div className="row2">
               <div className="field">
                 <label>Episode / guest name</label>
