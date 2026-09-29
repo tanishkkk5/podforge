@@ -29,15 +29,30 @@ interface ExtractedContent {
   resources: ResourceMention[]; // named things mentioned that likely need a link
 }
 
+// Groq's free tier caps total tokens-per-minute at 8,000 (shared across
+// input + output, across the whole account, not just this one model).
+// A full episode transcript alone can easily exceed that on its own, so we
+// truncate to a safe budget rather than let the request fail outright.
+// ~4 characters per token is a reasonable rule of thumb for English text.
+const MAX_TRANSCRIPT_CHARS = 20000; // ~5,000 tokens, leaving room for the
+// prompt instructions (~500 tokens) and the model's response (~1,500-2,000
+// tokens) within the 8,000 TPM budget.
+
 export async function extractEpisodeContent(
   transcript: string,
   guestName: string,
   hostName: string
-): Promise<ExtractedContent> {
+): Promise<ExtractedContent & { truncated: boolean }> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     throw new Error("Missing GROQ_API_KEY environment variable.");
   }
+
+  const truncated = transcript.length > MAX_TRANSCRIPT_CHARS;
+  const transcriptForPrompt = truncated
+    ? transcript.slice(0, MAX_TRANSCRIPT_CHARS) +
+      "\n\n[Transcript truncated here due to free-tier token limits — the rest of the conversation was not analyzed.]"
+    : transcript;
 
   const prompt = `You are producing show notes for the Profit Streams® Podcast, hosted by ${hostName}. The guest this episode is ${guestName}.
 
@@ -60,7 +75,7 @@ Important: "Profit Streams" must always be written as "Profit Streams®" with th
 For "resources": be thorough — include anything a real listener would plausibly want a link for, even minor mentions. It is fine if this list is empty for a sparse conversation, and fine if it has 10+ entries for a reference-heavy one. Never fabricate a URL — that step happens separately by a human.
 
 Transcript:
-${transcript}`;
+${transcriptForPrompt}`;
 
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -71,7 +86,7 @@ ${transcript}`;
     body: JSON.stringify({
       model: "openai/gpt-oss-120b",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 2000,
+      max_tokens: 1500,
       temperature: 0.4,
     }),
   });
@@ -102,5 +117,5 @@ ${transcript}`;
     parsed.resources = [];
   }
 
-  return parsed;
+  return { ...parsed, truncated };
 }

@@ -138,6 +138,15 @@ export default function GuestKitGeneratorPage() {
             <p style={{ marginBottom: 16 }}>
               <a href={result.url} target="_blank" rel="noreferrer">{result.url}</a>
             </p>
+            {result.content.truncated && (
+              <div className="error-banner" style={{ marginBottom: 16 }}>
+                Heads up: this transcript was long enough to hit Groq&apos;s free-tier
+                token limit, so only the first portion was analyzed. The title,
+                summary, takeaways, and resources below are based on a partial
+                transcript, not the full conversation — worth a manual read-through
+                before publishing.
+              </div>
+            )}
             <p className="hint">
               <strong>Title:</strong> {result.content.title}<br />
               <strong>Hook:</strong> {result.content.hook}
