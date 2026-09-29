@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 export default function GuestKitGeneratorPage() {
-  const [password, setPassword] = useState("");
   const [transcript, setTranscript] = useState("");
   const [guestName, setGuestName] = useState("");
   const [hostName, setHostName] = useState("Luke Hohmann");
@@ -34,7 +33,6 @@ export default function GuestKitGeneratorPage() {
 
     try {
       const fd = new FormData();
-      fd.append("password", password);
       fd.append("transcript", transcript);
       fd.append("guestName", guestName);
       fd.append("hostName", hostName);
@@ -75,11 +73,6 @@ export default function GuestKitGeneratorPage() {
           {error && <div className="error-banner">{error}</div>}
 
           <div className="section">
-            <div className="field">
-              <label>Admin password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </div>
-
             <div className="row2">
               <div className="field">
                 <label>Guest name</label>

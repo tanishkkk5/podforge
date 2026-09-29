@@ -23,7 +23,6 @@ function slugify(text: string): string {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const password = formData.get("password") as string;
     const transcript = formData.get("transcript") as string;
     const guestName = formData.get("guestName") as string;
     const hostName = formData.get("hostName") as string;
@@ -37,9 +36,6 @@ export async function POST(req: NextRequest) {
         ? Buffer.from(await headshotFile.arrayBuffer())
         : null;
 
-    if (password !== process.env.ADMIN_PASSWORD) {
-      return NextResponse.json({ error: "Incorrect password." }, { status: 401 });
-    }
     if (!transcript || !guestName || !hostName || !episodeNumber) {
       return NextResponse.json(
         { error: "Transcript, guest name, host name, and episode number are all required." },
