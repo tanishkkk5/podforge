@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Extract structured content via Claude (the only paid step)
+    // 1. Extract structured content via Groq (free tier)
     const content = await extractEpisodeContent(transcript, guestName, hostName);
 
     // 2. Generate every image asset (free — pure code)
@@ -87,7 +87,8 @@ export async function POST(req: NextRequest) {
     // 4. Save everything as one row
     const { data: inserted, error: insertError } = await supabase
       .from("guest_kits")
-      .insert({
+      .upsert(
+        {
         slug,
         episode_number: episodeNumber,
         guest_name: guestName,
@@ -108,7 +109,12 @@ export async function POST(req: NextRequest) {
           takeaways: takeawayUrls,
           chapters: chapterUrls,
         },
-      })
+        updated_at: new Date().toISOString(),
+        },
+        // Re-running the generator for the same guest + episode replaces the
+        // old kit instead of failing on the unique slug.
+        { onConflict: "slug" }
+      )
       .select()
       .single();
 

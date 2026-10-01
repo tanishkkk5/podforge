@@ -29,6 +29,7 @@ export default function Header() {
         <p className="af-nav-group-label">Guest Kit</p>
         <nav className="af-nav">
           <a href="/admin/guest-kit-generator">Guest Kit Generator</a>
+          <a href="/admin/guest-kits">Guest Kits &amp; Show Notes</a>
         </nav>
       </div>
 
