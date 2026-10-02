@@ -12,6 +12,7 @@ const PROTECTED_API_PATHS = [
   "/api/submissions",
   "/api/guestkit", // generate + list + read/save kits (guest page reads the DB directly)
   "/api/transcripts/ingest",
+  "/api/library",
 ];
 
 export async function middleware(req: NextRequest) {
@@ -40,5 +41,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/sessions/:path*", "/api/submissions/:path*", "/api/guestkit", "/api/guestkit/:path*", "/api/transcripts/ingest"],
+  matcher: ["/admin/:path*", "/api/sessions/:path*", "/api/submissions/:path*", "/api/guestkit", "/api/guestkit/:path*", "/api/transcripts/ingest", "/api/library", "/api/library/:path*"],
 };
