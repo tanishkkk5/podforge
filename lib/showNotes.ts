@@ -27,6 +27,7 @@ const KNOWN_HOST_LINKEDIN: Record<string, string> = {
 };
 
 export interface Resource {
+  // type "framework" = an Applied Frameworks page (auto-detected)
   label: string;
   type: string;
   url?: string;

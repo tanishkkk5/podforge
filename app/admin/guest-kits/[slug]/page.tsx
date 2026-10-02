@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { buildShowNotes, KitExtras, Resource } from "@/lib/showNotes";
+import { FRAMEWORKS } from "@/lib/frameworks";
 
-const RESOURCE_TYPES = ["book", "person", "company", "tool", "other"];
+const RESOURCE_TYPES = ["framework", "book", "person", "company", "tool", "other"];
 
 const EXTRA_FIELDS: { key: keyof KitExtras; label: string; hint?: string; multiline?: boolean }[] = [
   { key: "guestLinkedin", label: "Guest LinkedIn URL" },
@@ -137,6 +138,24 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
               </button>
             </div>
           ))}
+          <p className="hint" style={{ marginTop: 14, marginBottom: 6 }}>
+            Did the guest mention one of our frameworks? Add its appliedframeworks.com page in one click:
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+            {FRAMEWORKS.filter((f) => !resources.some((r) => r.url === f.url)).map((f) => (
+              <button
+                key={f.url}
+                type="button"
+                onClick={() => {
+                  setResources((rs) => [{ label: `Learn more about ${f.name}`, type: "framework", url: f.url }, ...rs]);
+                  setSavedAt(null);
+                }}
+                style={{ background: "#E6F4FC", color: "var(--af-navy)", fontSize: 12, padding: "4px 10px" }}
+              >
+                + {f.name}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={() => setResources((rs) => [...rs, { label: "", type: "other", url: "" }])}

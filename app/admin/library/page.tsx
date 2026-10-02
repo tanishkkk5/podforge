@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { TOPICS } from "@/lib/topics";
 import { drivePreviewUrl } from "@/lib/drive";
+import { frameworkByName } from "@/lib/frameworks";
 
 interface Item {
   id: string;
@@ -16,6 +17,7 @@ interface Item {
   summary: string | null;
   topics: string[];
   tag_status: string;
+  frameworks?: string[];
 }
 
 interface QueueRow {
@@ -368,6 +370,20 @@ export default function ContentLibraryPage() {
                   </span>
                 </div>
                 {it.summary && <p style={{ margin: "6px 0", fontSize: 13.5, color: "var(--ink-soft)" }}>{it.summary}</p>}
+                {it.frameworks && it.frameworks.length > 0 && (
+                  <p style={{ margin: "4px 0", fontSize: 12.5 }}>
+                    Mentions:{" "}
+                    {it.frameworks.map((n, i) => {
+                      const f = frameworkByName(n);
+                      return (
+                        <span key={n}>
+                          {i > 0 && ", "}
+                          {f ? <a href={f.url} target="_blank" rel="noreferrer">{n} ↗</a> : n}
+                        </span>
+                      );
+                    })}
+                  </p>
+                )}
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", margin: "8px 0" }}>
                   {it.tag_status === "pending" && <span style={{ fontSize: 12.5 }}>🔄 Tagging…</span>}

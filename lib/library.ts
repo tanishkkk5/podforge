@@ -1,8 +1,9 @@
 import { getSupabaseAdmin } from "./supabase";
 import { tagTranscript, GroqRateLimitError } from "./topicTagger";
+import { detectFrameworks } from "./frameworks";
 
 export const LIST_COLUMNS =
-  "id, created_at, kind, title, episode_label, guest_name, parent_id, video_url, summary, topics, tag_status";
+  "id, created_at, kind, title, episode_label, guest_name, parent_id, video_url, summary, topics, tag_status, frameworks";
 
 /** Runs the AI tagger for one item and saves the result. */
 export async function tagItem(id: string) {
@@ -18,7 +19,7 @@ export async function tagItem(id: string) {
     const { topics, summary } = await tagTranscript(item.transcript, item.kind);
     const { data, error: upErr } = await supabase
       .from("media_items")
-      .update({ topics, summary, tag_status: "tagged" })
+      .update({ topics, summary, tag_status: "tagged", frameworks: detectFrameworks(item.transcript) })
       .eq("id", id)
       .select(LIST_COLUMNS)
       .single();

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { LIST_COLUMNS, tagItem } from "@/lib/library";
 import { TOPICS } from "@/lib/topics";
+import { detectFrameworks } from "@/lib/frameworks";
 
 // Login required (see middleware.ts).
 export const runtime = "nodejs";
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
         guest_name: String(b.guest_name || "").trim() || null,
         parent_id: kind === "clip" && b.parent_id ? String(b.parent_id) : null,
         video_url: String(b.video_url || "").trim() || null,
+        frameworks: detectFrameworks(transcript),
       })
       .select("id")
       .single();

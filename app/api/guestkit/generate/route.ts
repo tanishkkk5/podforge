@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { extractEpisodeContent } from "@/lib/groq";
+import { detectFrameworks, frameworkResources } from "@/lib/frameworks";
 import {
   makeTitleCard,
   makeSummaryCard,
@@ -100,7 +101,12 @@ export async function POST(req: NextRequest) {
         takeaways: content.takeaways,
         chapters: parsedChapters,
         best_quote: content.bestQuote,
-        resources: content.resources,
+        // AI-found resources + any Applied Frameworks framework mentioned
+        // in the transcript, pre-linked to its page on appliedframeworks.com
+        resources: [
+          ...frameworkResources(detectFrameworks(transcript)),
+          ...(content.resources || []),
+        ],
         image_urls: {
           title_card: titleUrl,
           summary_card: summaryUrl,

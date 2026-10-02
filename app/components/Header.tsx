@@ -1,11 +1,23 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
+// Pages a GUEST or outside CREATOR can see. They must never show the
+// internal menu, so the sidebar is hidden there.
+const PUBLIC_PREFIXES = ["/guestkit/", "/creatorkit/", "/session/"];
+function isPublicPage(path: string | null) {
+  if (!path) return false;
+  return path === "/" || PUBLIC_PREFIXES.some((p) => path.startsWith(p));
+}
+
 async function handleLogout() {
   await fetch("/api/admin/logout", { method: "POST" });
   window.location.href = "/admin/login";
 }
 
 export default function Header() {
+  const pathname = usePathname();
+  if (isPublicPage(pathname)) return null;
   return (
     <div className="af-sidebar">
       <div className="af-sidebar-brand">
@@ -31,6 +43,7 @@ export default function Header() {
           <a href="/admin/guest-kit-generator">Guest Kit Generator</a>
           <a href="/admin/guest-kits">Guest Kits &amp; Show Notes</a>
           <a href="/admin/library">Content Library</a>
+          <a href="/admin/creators">Creator Kits</a>
         </nav>
       </div>
 
