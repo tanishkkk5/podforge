@@ -10,6 +10,7 @@ interface KitRow {
   title: string;
   created_at: string;
   resources: { url?: string }[] | null;
+  status?: string;
 }
 
 export default function GuestKitsListPage() {
@@ -54,7 +55,15 @@ export default function GuestKitsListPage() {
                 <p style={{ fontSize: 12, fontWeight: 700, color: "var(--ink-soft)", margin: "0 0 4px" }}>
                   EP-{k.episode_number} · {k.guest_name} · hosted by {k.host_name}
                 </p>
-                <p style={{ fontWeight: 700, margin: "0 0 4px" }}>{k.title}</p>
+                <p style={{ fontWeight: 700, margin: "0 0 4px" }}>
+                  {k.title}{" "}
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, verticalAlign: "middle",
+                    background: k.status === "approved" ? "#ECFDF3" : "#FFF4E5", color: k.status === "approved" ? "#0E8A50" : "#B54708",
+                  }}>
+                    {k.status === "approved" ? "APPROVED" : "DRAFT — needs review"}
+                  </span>
+                </p>
                 <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: 0 }}>
                   {new Date(k.created_at).toLocaleDateString()} · resource links: {linked}/{total}
                 </p>

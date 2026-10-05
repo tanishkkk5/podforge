@@ -10,7 +10,7 @@ export async function GET() {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from("guest_kits")
-      .select("slug, episode_number, guest_name, host_name, title, created_at, resources, extras")
+      .select("slug, episode_number, guest_name, host_name, title, created_at, resources, extras, status, reviewed_by, reviewed_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return NextResponse.json({ kits: data || [] });

@@ -20,7 +20,7 @@ export async function GET() {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("creator_kits")
-    .select("slug, created_at, creator_id, creator_name, topics, items")
+    .select("slug, created_at, creator_id, creator_name, topics, items, status, reviewed_by, reviewed_at")
     .order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({

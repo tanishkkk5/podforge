@@ -6,6 +6,14 @@ import { FRAMEWORKS } from "@/lib/frameworks";
 
 const RESOURCE_TYPES = ["framework", "book", "person", "company", "tool", "other"];
 
+// Review standard checklist (knowledge/standards/review-standard.md)
+const REVIEW_CHECKS = [
+  "I read the title, hook, takeaways and quote",
+  "Names are spelled right and it says Profit Streams®",
+  "Nothing is made up — every fact is from the episode",
+  "The images and captions on the guest page look right",
+];
+
 const EXTRA_FIELDS: { key: keyof KitExtras; label: string; hint?: string; multiline?: boolean }[] = [
   { key: "guestLinkedin", label: "Guest LinkedIn URL" },
   { key: "guestOtherLinks", label: "Other guest links", hint: 'One per line, e.g. "Website: https://..."', multiline: true },
@@ -23,6 +31,9 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [reviewer, setReviewer] = useState("Tanisk Pandey");
+  const [checks, setChecks] = useState<boolean[]>(REVIEW_CHECKS.map(() => false));
+  const [reviewing, setReviewing] = useState(false);
 
   useEffect(() => {
     fetch(`/api/guestkit/${params.slug}`)
@@ -65,6 +76,26 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
     }
   }
 
+  async function setReview(review: "approve" | "unapprove") {
+    setReviewing(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/guestkit/${params.slug}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ review, reviewer }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Could not update the review.");
+      setKit(body.kit);
+      if (review === "unapprove") setChecks(REVIEW_CHECKS.map(() => false));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setReviewing(false);
+    }
+  }
+
   function downloadNotes() {
     const blob = new Blob([notes.text], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
@@ -99,6 +130,53 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
 
       <div className="wrap" style={{ padding: "8px 24px 100px" }}>
         {error && <div className="error-banner">{error}</div>}
+
+        <div className="section" style={{ borderLeft: `4px solid ${kit.status === "approved" ? "#0E8A50" : "#F59E0B"}` }}>
+          <h2 style={{ marginTop: 0 }}>
+            Review &amp; approve{" "}
+            <span style={{
+              fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 999, verticalAlign: "middle",
+              background: kit.status === "approved" ? "#ECFDF3" : "#FFF4E5", color: kit.status === "approved" ? "#0E8A50" : "#B54708",
+            }}>
+              {kit.status === "approved" ? "APPROVED" : "DRAFT"}
+            </span>
+          </h2>
+          {kit.status === "approved" ? (
+            <>
+              <p style={{ fontSize: 14 }}>
+                ✅ Approved by <strong>{kit.reviewed_by}</strong>
+                {kit.reviewed_at ? ` on ${new Date(kit.reviewed_at).toLocaleString()}` : ""}. The guest&apos;s link is live — you can send it.
+              </p>
+              <button type="button" onClick={() => setReview("unapprove")} disabled={reviewing}
+                style={{ background: "#F0F3F6", color: "var(--af-navy)" }}>
+                Move back to draft (hides it from the guest)
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="hint" style={{ marginTop: 0 }}>
+                The guest&apos;s link shows &quot;being prepared&quot; until this kit is approved. AI drafted it —
+                a person checks it before the guest sees it.{" "}
+                <a href={`/guestkit/${kit.slug}`} target="_blank" rel="noreferrer">Preview the guest page ↗</a>
+              </p>
+              {REVIEW_CHECKS.map((c, i) => (
+                <label key={c} style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 400, fontSize: 14, margin: "6px 0" }}>
+                  <input type="checkbox" checked={checks[i]} style={{ width: "auto" }}
+                    onChange={() => setChecks((cs) => cs.map((v, j) => (j === i ? !v : v)))} />
+                  {c}
+                </label>
+              ))}
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }}>
+                <input type="text" value={reviewer} onChange={(e) => setReviewer(e.target.value)}
+                  placeholder="Your name" style={{ maxWidth: 220 }} aria-label="Reviewer name" />
+                <button type="button" onClick={() => setReview("approve")}
+                  disabled={reviewing || !checks.every(Boolean) || !reviewer.trim()}>
+                  {reviewing ? "Saving…" : "Approve — make the guest link live"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         <div className="section">
           <h2>Resource links</h2>

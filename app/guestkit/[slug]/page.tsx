@@ -1,7 +1,9 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
 import GuestKitClient from "./client";
+import { viewerIsAdmin, BeingPrepared, PreviewBanner } from "@/app/components/KitGate";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export default async function GuestKitPage({ params }: { params: { slug: string } }) {
   const supabase = getSupabaseAdmin();
@@ -20,5 +22,15 @@ export default async function GuestKitPage({ params }: { params: { slug: string 
     );
   }
 
+  // Only approved kits are visible to guests; the team can preview drafts.
+  if (data.status !== "approved") {
+    if (!(await viewerIsAdmin())) return <BeingPrepared what="guest kit" />;
+    return (
+      <>
+        <PreviewBanner editHref={`/admin/guest-kits/${data.slug}`} />
+        <GuestKitClient kit={data} />
+      </>
+    );
+  }
   return <GuestKitClient kit={data} />;
 }

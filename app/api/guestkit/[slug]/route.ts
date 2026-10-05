@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { reviewUpdate } from "@/lib/review";
 
 // Login required (see middleware.ts). Read one kit, or save its
 // resource links + show-notes extras.
@@ -36,15 +37,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { slug: stri
           }))
       : undefined;
 
-    const extras: Record<string, string> = {};
+    const update: Record<string, any> = { updated_at: new Date().toISOString() };
+    // Only touch extras when they were sent (an approve-only request must not wipe them)
     if (body.extras && typeof body.extras === "object") {
+      const extras: Record<string, string> = {};
       for (const k of EXTRA_KEYS) {
         if (typeof body.extras[k] === "string") extras[k] = body.extras[k];
       }
+      update.extras = extras;
     }
-
-    const update: Record<string, any> = { updated_at: new Date().toISOString(), extras };
     if (resources) update.resources = resources;
+
+    const review = reviewUpdate(body);
+    if (review.error) return NextResponse.json({ error: review.error }, { status: 400 });
+    Object.assign(update, review.update || {});
 
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase

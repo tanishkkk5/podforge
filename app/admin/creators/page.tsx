@@ -25,6 +25,8 @@ interface KitRow {
   created_at: string;
   creator_name: string;
   item_count: number;
+  status?: string;
+  reviewed_by?: string | null;
 }
 
 const MAX_ITEMS = 6;
@@ -138,6 +140,26 @@ export default function CreatorKitsPage() {
     }
   }
 
+  async function reviewKit(slug: string, review: "approve" | "unapprove") {
+    let reviewer = "";
+    if (review === "approve") {
+      const ok = confirm(
+        "Before approving, check:\n• captions read naturally and say Profit Streams®\n• nothing is made up\n• every video opens\n\nApprove and make the creator's link live?"
+      );
+      if (!ok) return;
+      reviewer = prompt("Your name (recorded with the approval):", "Tanisk Pandey") || "";
+      if (!reviewer.trim()) return;
+    }
+    const res = await fetch(`/api/creatorkits/${slug}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ review, reviewer }),
+    });
+    const body = await res.json();
+    if (!res.ok) setError(body.error || "Could not update the review.");
+    load();
+  }
+
   async function deleteKit(slug: string) {
     if (!confirm("Delete this kit? Its link will stop working.")) return;
     await fetch(`/api/creatorkits/${slug}`, { method: "DELETE" });
@@ -226,7 +248,7 @@ export default function CreatorKitsPage() {
 
               {made && (
                 <div style={{ marginTop: 18, padding: 14, background: "#ECFDF3", borderRadius: 8 }}>
-                  <p style={{ margin: "0 0 8px", fontWeight: 700 }}>✅ Kit ready — send this link to the creator:</p>
+                  <p style={{ margin: "0 0 8px", fontWeight: 700 }}>✅ Kit drafted. Preview it, then Approve it under &quot;Kits sent&quot; below. The link only works for the creator after approval:</p>
                   <div style={{ display: "flex", gap: 8 }}>
                     <input type="text" readOnly value={kitUrl} style={{ flex: 1, fontSize: 13 }} />
                     <button type="button" onClick={() => { navigator.clipboard.writeText(kitUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>
@@ -313,12 +335,23 @@ export default function CreatorKitsPage() {
         {/* ---------- PAST KITS ---------- */}
         {kits.length > 0 && (
           <div className="section">
-            <h2>Kits sent</h2>
+            <h2>Kits (approve before sending)</h2>
             {kits.map((k) => (
               <div key={k.slug} style={{ borderTop: "1px solid var(--line)", padding: "8px 0", display: "flex", gap: 10, alignItems: "center", fontSize: 14 }}>
                 <span style={{ flex: 1 }}>
-                  <strong>{k.creator_name}</strong> · {k.item_count} item{k.item_count === 1 ? "" : "s"} · {new Date(k.created_at).toLocaleDateString()}
+                  <strong>{k.creator_name}</strong> · {k.item_count} item{k.item_count === 1 ? "" : "s"} · {new Date(k.created_at).toLocaleDateString()}{" "}
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
+                    background: k.status === "approved" ? "#ECFDF3" : "#FFF4E5", color: k.status === "approved" ? "#0E8A50" : "#B54708",
+                  }}>
+                    {k.status === "approved" ? `APPROVED${k.reviewed_by ? ` · ${k.reviewed_by}` : ""}` : "DRAFT"}
+                  </span>
                 </span>
+                {k.status === "approved" ? (
+                  <button type="button" style={ghost} onClick={() => reviewKit(k.slug, "unapprove")}>Back to draft</button>
+                ) : (
+                  <button type="button" onClick={() => reviewKit(k.slug, "approve")} style={{ padding: "6px 12px", fontSize: 12.5 }}>Approve</button>
+                )}
                 <a href={`/creatorkit/${k.slug}`} target="_blank" rel="noreferrer"><button type="button" style={ghost}>Open ↗</button></a>
                 <button type="button" style={{ ...ghost, color: "#B42318" }} onClick={() => deleteKit(k.slug)}>Delete</button>
               </div>

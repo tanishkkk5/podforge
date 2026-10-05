@@ -15,5 +15,11 @@ export function getSupabaseAdmin() {
 
   return createClient(url, serviceKey, {
     auth: { persistSession: false },
+    // Never let Next.js cache database reads. Without this, pages could show
+    // stale data — e.g. a guest still seeing "being prepared" after a kit was
+    // approved, or edits not appearing until the cache expired.
+    global: {
+      fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, { ...init, cache: "no-store" }),
+    },
   });
 }

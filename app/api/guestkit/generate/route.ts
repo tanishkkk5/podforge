@@ -116,6 +116,10 @@ export async function POST(req: NextRequest) {
           chapters: chapterUrls,
         },
         updated_at: new Date().toISOString(),
+        // New or regenerated kits always need a human review (decision 0009)
+        status: "draft",
+        reviewed_by: null,
+        reviewed_at: null,
         },
         // Re-running the generator for the same guest + episode replaces the
         // old kit instead of failing on the unique slug.

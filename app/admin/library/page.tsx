@@ -208,6 +208,14 @@ export default function ContentLibraryPage() {
     load();
   }
 
+  // AI helper scorecard (knowledge/skills/content-library-tagger.md):
+  // how often a human had to correct the Tagger's topics.
+  const score = useMemo(() => {
+    const done = (items || []).filter((it) => it.tag_status === "tagged" || it.tag_status === "edited");
+    const fixed = done.filter((it) => it.tag_status === "edited").length;
+    return { total: done.length, fixed, pct: done.length ? Math.round((fixed / done.length) * 100) : 0 };
+  }, [items]);
+
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
     (items || []).forEach((it) => it.topics.forEach((t) => (c[t] = (c[t] || 0) + 1)));
@@ -328,6 +336,19 @@ export default function ContentLibraryPage() {
         {/* ---------- BROWSE ---------- */}
         <div className="section">
           <h2>Browse by topic</h2>
+          {score.total > 0 && (
+            <p style={{ fontSize: 13.5, margin: "-4px 0 14px", padding: "8px 12px", background: "#F5FAFE", borderRadius: 8 }}>
+              <strong>AI Tagger scorecard{topic || kind || q ? " (this view)" : ""}:</strong> a person corrected the topics on{" "}
+              {score.fixed} of {score.total} items ({score.pct}%).{" "}
+              {score.total < 10
+                ? "Too few items yet to judge — keep checking every tag."
+                : score.pct <= 10
+                ? "Low — the Tagger is earning trust."
+                : score.pct <= 30
+                ? "Moderate — keep checking tags."
+                : "High — its instructions need improving."}
+            </p>
+          )}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             <button type="button" onClick={() => setTopic("")}
               style={{ ...ghostBtn, ...(topic === "" ? { background: "var(--af-navy)", color: "#fff" } : {}) }}>
