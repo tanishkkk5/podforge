@@ -28,6 +28,14 @@ function IntakeForm() {
 
   const [sessionInfo, setSessionInfo] = useState<{ host_name: string; scheduled_at: string } | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  // Logged-in team members get extra info; guests never see it.
+  const [isTeam, setIsTeam] = useState(false);
+  useEffect(() => {
+    fetch("/api/admin/me", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((b) => setIsTeam(!!b.admin))
+      .catch(() => setIsTeam(false));
+  }, []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [books, setBooks] = useState<BookEntry[]>([emptyBook()]);
@@ -113,6 +121,24 @@ function IntakeForm() {
             details, and we&apos;ll take it from here on building your episode kit.
           </p>
         </div>
+        {isTeam && (
+          <div className="wrap" style={{ padding: "0 24px" }}>
+            <div className="section" style={{ borderLeft: "4px solid #F59E0B", background: "#FFFBF2" }}>
+              <h2 style={{ marginTop: 0 }}>Team view — where this submission went</h2>
+              <p className="hint" style={{ marginTop: 0 }}>Only you see this box because you&apos;re logged in. Guests just see the message above.</p>
+              <ul style={{ fontSize: 14, lineHeight: 1.8, paddingLeft: 18 }}>
+                <li><a href="/admin/submissions"><strong>New Submissions</strong> in Podforge →</a> (schedule it from there)</li>
+                <li>The <strong>Podforge Guest List</strong> Google Sheet, &quot;Guest List&quot; tab</li>
+                <li>A notification email to tpandey@appliedframeworks.com</li>
+                <li>Supabase → Table Editor → <code>guest_intakes</code></li>
+              </ul>
+              <p style={{ fontSize: 13.5, margin: "8px 0 0" }}>
+                Was this a test? Delete it from the Google Sheet and from Supabase so it doesn&apos;t look like a real guest.
+              </p>
+              <p style={{ margin: "12px 0 0" }}><a href="/admin">← Back to the Podforge dashboard</a></p>
+            </div>
+          </div>
+        )}
         <footer>Applied Frameworks · Profit Streams® Podcast</footer>
       </>
     );
@@ -120,6 +146,12 @@ function IntakeForm() {
 
   return (
     <>
+      {isTeam && (
+        <div style={{ background: "#FFF4E5", borderBottom: "1px solid #F5C77E", padding: "10px 24px", fontSize: 14, textAlign: "center" }}>
+          <strong>Team view.</strong> This is the guest intake form exactly as guests see it.{" "}
+          <a href="/admin">← Back to dashboard</a> · <a href="/admin/submissions">New Submissions</a>
+        </div>
+      )}
       <header className="hero">
         <div className="hero-inner">
         <p className="kicker">PROFIT STREAMS® PODCAST</p>
