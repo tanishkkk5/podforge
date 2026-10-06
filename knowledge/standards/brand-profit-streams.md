@@ -23,10 +23,12 @@ Do **not** add ® to "value streams" (a generic Lean/Agile term, not our brand).
 | Profit Streams (no ®) | Profit Streams® |
 
 **Enforcement:** `fixBrand()` in `lib/showNotes.ts` corrects show notes, AI summaries and creator captions
-automatically. Every AI prompt also instructs the spelling. A human still checks before approving a kit.
+automatically, and `fixTranscript()` in `lib/transcriptFixes.ts` fixes every transcript as it enters Podforge
+(also "Skilled Agile" → "Scaled Agile"). Names are not auto-fixed — use the Transcript Checker. Every AI prompt also instructs the spelling. A human still checks before approving a kit.
 
 **Owner:** Tanisk Pandey
 
 **Change log:**
 - 2026-09 — rule set after repeated transcript errors.
 - 2026-10-06 — written down as a standard.
+- 2026-10-07 — transcripts are now fixed automatically on upload.

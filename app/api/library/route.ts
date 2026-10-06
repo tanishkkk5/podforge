@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { LIST_COLUMNS, tagItem } from "@/lib/library";
 import { TOPICS } from "@/lib/topics";
 import { detectFrameworks } from "@/lib/frameworks";
+import { fixTranscript } from "@/lib/transcriptFixes";
 
 // Login required (see middleware.ts).
 export const runtime = "nodejs";
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
     const b = await req.json();
     const kind = b.kind === "clip" ? "clip" : "episode";
     const title = String(b.title || "").trim();
-    const transcript = String(b.transcript || "").trim();
+    const { text: transcript, fixes: transcriptFixes } = fixTranscript(String(b.transcript || "").trim());
     if (!title) return NextResponse.json({ error: "A title is required." }, { status: 400 });
     if (transcript.length < 20) {
       return NextResponse.json({ error: "The transcript is empty or too short." }, { status: 400 });
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     try {
       const result = await tagItem(created.id);
-      return NextResponse.json(result);
+      return NextResponse.json({ ...result, transcriptFixes });
     } catch (tagErr: any) {
       // Saved fine, tagging failed — the item shows as "failed" with a Retry button.
       const { data } = await supabase.from("media_items").select(LIST_COLUMNS).eq("id", created.id).single();

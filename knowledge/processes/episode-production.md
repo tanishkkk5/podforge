@@ -15,7 +15,7 @@ follow-ups and prep briefs for you to approve (decision 0013).
 
 1. **Book the guest** → see `guest-scheduling.md`. Guest fills in the intake form (`/`).
 2. **Record** on Riverside (decision 0008).
-3. **Edit** the episode and cut 3 Magic Clips.
+3. **Edit** the episode and cut 3 Magic Clips. Use **Clip Finder** with Riverside's `.srt` export to find the best moments first.
 4. **Drive folder**: create `Profit Streams Podcast (Host & Guest)/` in the podcast root folder with
    `Main Podcast/` (title, summary, takeaways, chapters, show notes, transcript, resources, bio, thumbnail, video)
    and `Magic Clips/` (3 clips + their transcripts). Share each video file as "Anyone with the link can view".

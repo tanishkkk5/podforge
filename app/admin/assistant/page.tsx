@@ -13,7 +13,9 @@ interface Draft {
   content: string; status: string; reviewed_by: string | null; reviewed_at: string | null;
 }
 
-const HELPER_NAMES: Record<string, string> = { prep_brief: "Prep Brief Writer", follow_up: "Follow-up Drafter" };
+const HELPER_NAMES: Record<string, string> = {
+  prep_brief: "Prep Brief Writer", follow_up: "Follow-up Drafter", clip_finder: "Clip Finder", outreach: "Outreach Drafter",
+};
 const ghost: React.CSSProperties = { background: "#F0F3F6", color: "var(--af-navy)", padding: "6px 12px", fontSize: 12.5 };
 const fmt = (iso: string) => new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
@@ -27,6 +29,8 @@ export default function ProductionAssistantPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [newGuest, setNewGuest] = useState("");
   const [newEp, setNewEp] = useState("");
+  const [prospect, setProspect] = useState("");
+  const [prospectNotes, setProspectNotes] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -66,7 +70,7 @@ export default function ProductionAssistantPage() {
 
   const pendingDrafts = useMemo(() => (data?.drafts || []).filter((d) => d.status === "draft"), [data]);
   const suggestions = useMemo(() => (data?.suggestions || []).filter((s) => !hidden.has(s.key)), [data, hidden]);
-  const episodeName = (id: string | null) => data?.episodes.find((e) => e.id === id)?.guest_name || "—";
+  const episodeName = (id: string | null) => (id ? data?.episodes.find((e) => e.id === id)?.guest_name || "—" : "a new guest");
   const needsYou = suggestions.length + pendingDrafts.length;
 
   return (
@@ -146,6 +150,28 @@ export default function ProductionAssistantPage() {
                 </>
               )}
               {copied && <p style={{ color: "#0E8A50", fontWeight: 700, fontSize: 14 }}>✅ Approved and copied to your clipboard.</p>}
+            </div>
+
+            {/* ---------- INVITE A GUEST ---------- */}
+            <div className="section">
+              <h2 style={{ marginTop: 0 }}>Invite a new guest</h2>
+              <p className="hint" style={{ marginTop: 0 }}>
+                The Outreach Drafter writes Luke&apos;s invitation from the standard template, adding one personal line
+                based only on your notes. It appears above for review — send it from Luke&apos;s account yourself.
+              </p>
+              <div className="field">
+                <label>Their name</label>
+                <input type="text" value={prospect} onChange={(e) => setProspect(e.target.value)} placeholder="e.g. Kyle Poyar" />
+              </div>
+              <div className="field">
+                <label>Notes about them (facts only)</label>
+                <textarea value={prospectNotes} onChange={(e) => setProspectNotes(e.target.value)} style={{ minHeight: 90 }}
+                  placeholder="e.g. Writes Growth Unhinged; published a 2026 survey of 230 B2B software and AI companies on pricing and AI monetization." />
+              </div>
+              <button type="button" disabled={busy === "outreach" || !prospect.trim()}
+                onClick={async () => { const r = await call("outreach", "/api/assistant/outreach", "POST", { name: prospect, notes: prospectNotes }); if (r) { setProspect(""); setProspectNotes(""); } }}>
+                {busy === "outreach" ? "Drafting…" : "Draft invitation"}
+              </button>
             </div>
 
             {/* ---------- EPISODES ---------- */}

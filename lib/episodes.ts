@@ -125,6 +125,10 @@ export function suggestNextSteps(
       const q = new URLSearchParams({ guest: e.guest_name, ...(e.episode_number ? { ep: e.episode_number } : {}) });
       out.push({ kind: "todo", key: `todo:${e.id}:kit`, episodeId: e.id, text: `Export ${e.guest_name}'s transcript from Riverside, then generate the guest kit`, href: `/admin/guest-kit-generator?${q}` });
     }
+    if ((e.stage === "recorded" || e.stage === "kit") && !hasDraft(e.id, "clip_finder")) {
+      const q = new URLSearchParams({ episode: e.id, guest: e.guest_name });
+      out.push({ kind: "todo", key: `todo:${e.id}:clips`, episodeId: e.id, text: `Find the best clips in ${e.guest_name}'s episode (upload the Riverside .srt)`, href: `/admin/clip-finder?${q}` });
+    }
     if (kit && kit.status !== "approved") {
       out.push({ kind: "todo", key: `todo:${e.id}:approve`, episodeId: e.id, text: `Review and approve ${e.guest_name}'s guest kit`, href: `/admin/guest-kits/${kit.slug}` });
     }

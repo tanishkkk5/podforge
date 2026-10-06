@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { extractEpisodeContent } from "@/lib/groq";
 import { detectFrameworks, frameworkResources } from "@/lib/frameworks";
+import { fixTranscript } from "@/lib/transcriptFixes";
 import {
   makeTitleCard,
   makeSummaryCard,
@@ -24,7 +25,8 @@ function slugify(text: string): string {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const transcript = formData.get("transcript") as string;
+    // Brand + safe spelling fixes before anything reads the transcript
+    const transcript = fixTranscript((formData.get("transcript") as string) || "").text;
     const guestName = formData.get("guestName") as string;
     const hostName = formData.get("hostName") as string;
     const episodeNumber = formData.get("episodeNumber") as string;

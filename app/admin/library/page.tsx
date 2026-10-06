@@ -127,6 +127,7 @@ export default function ContentLibraryPage() {
     const body = await res.json();
     if (!res.ok) return { ok: false, note: body.error || "Save failed." };
     if (body.tagError) return { ok: true, note: `Saved, but tagging failed: ${body.tagError}` };
+    const fixedNote = body.transcriptFixes ? `Fixed ${body.transcriptFixes} spelling${body.transcriptFixes === 1 ? "" : "s"} (e.g. Profit Streams®).` : undefined;
     let attempt = 0;
     let rateLimited = body.rateLimited;
     while (rateLimited && attempt < 3) {
@@ -137,7 +138,7 @@ export default function ContentLibraryPage() {
       if (!r.ok) return { ok: true, note: `Saved, but tagging failed: ${rb.error}` };
       rateLimited = rb.rateLimited;
     }
-    return rateLimited ? { ok: true, note: "Saved — tagging still waiting on Groq, use Retry tagging later." } : { ok: true };
+    return rateLimited ? { ok: true, note: "Saved — tagging still waiting on Groq, use Retry tagging later." } : { ok: true, note: fixedNote };
   }
 
   async function handleSingle(e: React.FormEvent) {
@@ -150,7 +151,7 @@ export default function ContentLibraryPage() {
     );
     setSaving(false);
     if (!r.ok) { setSaveMsg(`❌ ${r.note}`); return; }
-    setSaveMsg(r.note ? `⚠️ ${r.note}` : "✅ Saved and tagged.");
+    setSaveMsg(r.note && !r.note.startsWith("Fixed") ? `⚠️ ${r.note}` : `✅ Saved and tagged.${r.note ? " " + r.note : ""}`);
     setFTitle(""); setFTranscript(""); setFVideo("");
     load();
   }

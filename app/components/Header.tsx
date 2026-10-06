@@ -43,6 +43,7 @@ export default function Header() {
         <nav className="af-nav">
           <a href="/admin/guest-kit-generator">Guest Kit Generator</a>
           <a href="/admin/guest-kits">Guest Kits &amp; Show Notes</a>
+          <a href="/admin/clip-finder">Clip Finder</a>
           <a href="/admin/library">Content Library</a>
           <a href="/admin/creators">Creator Kits</a>
         </nav>

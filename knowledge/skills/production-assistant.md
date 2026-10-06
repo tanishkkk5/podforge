@@ -16,5 +16,6 @@ related: ai-skill-standard, 0013-production-assistant-drafts-only
 - **Human check:** every suggestion needs a click (Accept / Draft it / Start tracking).
 - **What it notices:** new intakes to track · a guest booked → Booked · a matching guest kit → link it ·
   kit drafted / approved → move stage · no booking after 2 days → offer a follow-up · Booked → offer a prep brief ·
-  Recorded without a kit → remind to export the Riverside transcript and generate the kit.
+  Recorded without a kit → remind to export the Riverside transcript and generate the kit ·
+  Recorded / Kit drafted without clip suggestions → open the Clip Finder.
 - **Measure:** how many suggestions are accepted vs. "Not now".

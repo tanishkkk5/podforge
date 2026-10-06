@@ -18,7 +18,8 @@ should have one job and one human owner, and earn more freedom only after provin
 - An episode tracker with six stages: Intake → Booked → Recorded → Kit drafted → Kit approved → Published.
 - A "Production Assistant" dashboard that works out what's needed **each time it's opened** (no scheduled jobs, no emails).
 - The agent only **suggests** stage moves and **drafts** content; a person clicks Accept / Approve for every step.
-- Helpers, each with one job: Follow-up Drafter (fixed template, no AI) and Prep Brief Writer (AI, intake facts only).
+- Helpers, each with one job: Follow-up Drafter (fixed template, no AI), Prep Brief Writer (AI, intake facts only),
+  and since phase 2 (2026-10-07): Clip Finder (AI picks, times from the Riverside file) and Outreach Drafter (template + one AI line from typed notes).
 - Every draft is logged with who approved or dismissed it.
 
 **Alternatives:** fully automatic agent; email digests on a schedule; doing it all by hand.
