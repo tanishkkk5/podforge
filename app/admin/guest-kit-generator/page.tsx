@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function GuestKitGeneratorPage() {
   const [transcript, setTranscript] = useState("");
@@ -12,6 +12,14 @@ export default function GuestKitGeneratorPage() {
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-fill from the Production Assistant (?guest=…&ep=…&host=…)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("guest")) setGuestName(q.get("guest")!);
+    if (q.get("ep")) setEpisodeNumber(q.get("ep")!);
+    if (q.get("host")) setHostName(q.get("host")!);
+  }, []);
 
   function parseChapters() {
     return chaptersText

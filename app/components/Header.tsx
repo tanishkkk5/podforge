@@ -28,6 +28,7 @@ export default function Header() {
       <div className="af-nav-group">
         <p className="af-nav-group-label">Production</p>
         <nav className="af-nav">
+          <a href="/admin/assistant">✨ Production Assistant</a>
           <a href="/">Guest Intake</a>
           <a href="/admin">Schedule Guest</a>
           <a href="/admin/submissions">New Submissions</a>

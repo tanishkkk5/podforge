@@ -3,11 +3,15 @@ title: Episode production — from booking to promotion
 type: process
 owner: tanisk-pandey
 status: accepted
-updated: 2026-10-06
+updated: 2026-10-07
 related: guest-scheduling, show-notes-lenny-format, review-standard, 0006-sunday-publishing
 ---
 
 # Episode production — from booking to promotion
+
+**Start each day in Podforge → ✨ Production Assistant.** It tracks every episode through
+Intake → Booked → Recorded → Kit drafted → Kit approved → Published, lists what needs you, and drafts
+follow-ups and prep briefs for you to approve (decision 0013).
 
 1. **Book the guest** → see `guest-scheduling.md`. Guest fills in the intake form (`/`).
 2. **Record** on Riverside (decision 0008).
