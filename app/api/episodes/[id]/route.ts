@@ -15,7 +15,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       if (!isStage(b.stage)) return NextResponse.json({ error: "Unknown stage." }, { status: 400 });
       update.stage = b.stage;
     }
-    for (const k of ["guest_kit_slug", "episode_number", "guest_email", "notes"]) {
+    if (typeof b.guest_posted === "boolean") update.guest_posted_at = b.guest_posted ? new Date().toISOString() : null;
+    for (const k of ["guest_kit_slug", "episode_number", "guest_email", "notes", "guest_post_url"]) {
       if (typeof b[k] === "string") update[k] = b[k].trim() || null;
     }
     const supabase = getSupabaseAdmin();

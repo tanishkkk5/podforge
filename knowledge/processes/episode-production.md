@@ -19,13 +19,16 @@ follow-ups and prep briefs for you to approve (decision 0013).
 4. **Drive folder**: create `Profit Streams Podcast (Host & Guest)/` in the podcast root folder with
    `Main Podcast/` (title, summary, takeaways, chapters, show notes, transcript, resources, bio, thumbnail, video)
    and `Magic Clips/` (3 clips + their transcripts). Share each video file as "Anyone with the link can view".
-5. **Fix the transcript**: run `/tools/transcript-check` for name misspellings; apply the brand standard.
-6. **Generate the guest kit**: Podforge → Guest Kit Generator (transcript, guest, host, episode number, chapters, headshot).
+5. **Drop Riverside's `.srt` export into the Drive drop folder** (decision 0014). Production Assistant notices it.
+6. **Run the Episode Pipeline**: chapters + clip suggestions + a draft guest kit with show notes, in one go
+   (brand spelling is fixed automatically; check names with `/tools/transcript-check`).
 7. **Add links & show notes**: open the kit → paste real resource links (never guess) → add guest LinkedIn,
    Spotify/Apple links, related episode → Save → copy the Show Notes.
 8. **Review and approve** the kit (review standard) → only then send the guest their link.
 9. **Add to the Content Library**: the episode + its 3 clips, with Drive video links. Check the AI's topic tags.
 10. **Publish** Sunday 7:30 AM ET (decision 0006).
-11. **Promote**: post the kit assets (@-tag the guest); optionally make Creator Kits for matching creators — approve before sending.
+11. **Promote**: approve the Social Pack (LinkedIn + Instagram posts) and the guest's share email; mark
+    "guest posted" when they do (a reminder is drafted after 7 days if not). Make Creator Kits — approve before sending.
+12. **Monday:** weekly stats check-in (`weekly-stats.md`).
 
 Done when: episode live · guest has an approved kit · show notes published · clips in the library.

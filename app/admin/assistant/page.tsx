@@ -7,6 +7,7 @@ import { hostByKey } from "@/lib/hosts";
 interface Episode {
   id: string; created_at: string; guest_name: string; guest_email: string | null; host_key: string;
   episode_number: string | null; intake_id: string | null; guest_kit_slug: string | null; stage: string;
+  drive_folder_id?: string | null; guest_posted_at?: string | null;
 }
 interface Draft {
   id: string; created_at: string; episode_id: string | null; helper: string; title: string | null;
@@ -15,12 +16,13 @@ interface Draft {
 
 const HELPER_NAMES: Record<string, string> = {
   prep_brief: "Prep Brief Writer", follow_up: "Follow-up Drafter", clip_finder: "Clip Finder", outreach: "Outreach Drafter",
+  social_pack: "Social Pack Writer", guest_share: "Guest Share Drafter", guest_reminder: "Guest Share Drafter",
 };
 const ghost: React.CSSProperties = { background: "#F0F3F6", color: "var(--af-navy)", padding: "6px 12px", fontSize: 12.5 };
 const fmt = (iso: string) => new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
 export default function ProductionAssistantPage() {
-  const [data, setData] = useState<{ episodes: Episode[]; drafts: Draft[]; suggestions: Suggestion[] } | null>(null);
+  const [data, setData] = useState<{ episodes: Episode[]; drafts: Draft[]; suggestions: Suggestion[]; dropNote?: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -66,6 +68,7 @@ export default function ProductionAssistantPage() {
     if (s.kind === "advance") return call(s.key, `/api/episodes/${s.episodeId}`, "PATCH", { stage: s.to });
     if (s.kind === "link_kit") return call(s.key, `/api/episodes/${s.episodeId}`, "PATCH", { guest_kit_slug: s.slug });
     if (s.kind === "draft") return call(s.key, "/api/assistant/draft", "POST", { episode_id: s.episodeId, helper: s.helper });
+    if (s.kind === "drive_folders") return call(s.key, "/api/drive/folders", "POST", { episode_id: s.episodeId });
   }
 
   const pendingDrafts = useMemo(() => (data?.drafts || []).filter((d) => d.status === "draft"), [data]);
@@ -96,11 +99,12 @@ export default function ProductionAssistantPage() {
             <div className="section">
               <h2 style={{ marginTop: 0 }}>Needs you {needsYou > 0 ? `(${needsYou})` : ""}</h2>
               {needsYou === 0 && <p style={{ fontSize: 14 }}>✅ Nothing waiting on you right now.</p>}
+              {data.dropNote && <p className="hint" style={{ marginTop: 0 }}>📂 {data.dropNote}</p>}
 
               {suggestions.map((s) => (
                 <div key={s.key} style={{ display: "flex", gap: 10, alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
                   <span style={{ fontSize: 18 }}>
-                    {s.kind === "create_episode" ? "🆕" : s.kind === "advance" ? "➡️" : s.kind === "link_kit" ? "🔗" : s.kind === "draft" ? "✍️" : "📋"}
+                    {s.kind === "create_episode" ? "🆕" : s.kind === "advance" ? "➡️" : s.kind === "link_kit" ? "🔗" : s.kind === "draft" ? "✍️" : s.kind === "drive_folders" ? "📁" : "📋"}
                   </span>
                   <span style={{ flex: 1, fontSize: 14 }}>{s.text}</span>
                   {s.kind === "todo" ? (
@@ -108,7 +112,7 @@ export default function ProductionAssistantPage() {
                   ) : (
                     <button type="button" disabled={busy === s.key} onClick={() => act(s)} style={{ padding: "6px 12px", fontSize: 12.5 }}>
                       {busy === s.key ? "Working…" :
-                        s.kind === "create_episode" ? "Start tracking" : s.kind === "draft" ? "Draft it" : s.kind === "link_kit" ? "Link it" : "Accept"}
+                        s.kind === "create_episode" ? "Start tracking" : s.kind === "draft" ? "Draft it" : s.kind === "link_kit" ? "Link it" : s.kind === "drive_folders" ? "Create folders" : "Accept"}
                     </button>
                   )}
                   <button type="button" style={ghost} onClick={() => setHidden((h) => new Set(h).add(s.key))}>Not now</button>
@@ -195,7 +199,14 @@ export default function ProductionAssistantPage() {
                           </span>
                           {e.guest_kit_slug && <> · <a href={`/admin/guest-kits/${e.guest_kit_slug}`}>guest kit</a></>}
                           {e.intake_id && <> · <a href="/admin/submissions">intake</a></>}
+                          {e.drive_folder_id && <> · <a href={`https://drive.google.com/drive/folders/${e.drive_folder_id}`} target="_blank" rel="noreferrer">Drive ↗</a></>}
                         </span>
+                        {e.guest_kit_slug && (
+                          <button type="button" style={{ ...ghost, ...(e.guest_posted_at ? { background: "#ECFDF3", color: "#0E8A50" } : {}) }}
+                            onClick={() => call(`posted:${e.id}`, `/api/episodes/${e.id}`, "PATCH", { guest_posted: !e.guest_posted_at })}>
+                            {e.guest_posted_at ? "Guest posted ✅" : "Mark guest posted"}
+                          </button>
+                        )}
                         <select value={e.stage} aria-label={`Stage for ${e.guest_name}`} style={{ width: "auto", fontSize: 12.5 }}
                           onChange={(ev) => call(`stage:${e.id}`, `/api/episodes/${e.id}`, "PATCH", { stage: ev.target.value })}>
                           {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}

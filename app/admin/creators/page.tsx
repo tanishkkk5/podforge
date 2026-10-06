@@ -27,6 +27,7 @@ interface KitRow {
   item_count: number;
   status?: string;
   reviewed_by?: string | null;
+  posted_at?: string | null;
 }
 
 const MAX_ITEMS = 6;
@@ -336,6 +337,11 @@ export default function CreatorKitsPage() {
         {kits.length > 0 && (
           <div className="section">
             <h2>Kits (approve before sending)</h2>
+            {kits.some((k) => k.status === "approved") && (
+              <p className="hint" style={{ marginTop: 0 }}>
+                Results: {kits.filter((k) => k.posted_at).length} of {kits.filter((k) => k.status === "approved").length} approved kits have been posted by their creator.
+              </p>
+            )}
             {kits.map((k) => (
               <div key={k.slug} style={{ borderTop: "1px solid var(--line)", padding: "8px 0", display: "flex", gap: 10, alignItems: "center", fontSize: 14 }}>
                 <span style={{ flex: 1 }}>
@@ -347,6 +353,15 @@ export default function CreatorKitsPage() {
                     {k.status === "approved" ? `APPROVED${k.reviewed_by ? ` · ${k.reviewed_by}` : ""}` : "DRAFT"}
                   </span>
                 </span>
+                {k.status === "approved" && (
+                  <button type="button" style={{ ...ghost, ...(k.posted_at ? { background: "#ECFDF3", color: "#0E8A50" } : {}) }}
+                    onClick={async () => {
+                      await fetch(`/api/creatorkits/${k.slug}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ posted: !k.posted_at }) });
+                      load();
+                    }}>
+                    {k.posted_at ? "Posted ✅" : "Mark posted"}
+                  </button>
+                )}
                 {k.status === "approved" ? (
                   <button type="button" style={ghost} onClick={() => reviewKit(k.slug, "unapprove")}>Back to draft</button>
                 ) : (

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { suggestNextSteps } from "@/lib/episodes";
+import { suggestNextSteps, mondayOf } from "@/lib/episodes";
+import { listDropFiles } from "@/lib/drive.server";
 
 // Login required (see middleware.ts). Everything the Production Assistant
 // dashboard shows, plus the agent's suggestions — worked out fresh on every
@@ -19,8 +20,32 @@ export async function GET() {
     ]);
     const err = ep.error || it.error || kt.error || dr.error;
     if (err) throw new Error(err.message);
-    const suggestions = suggestNextSteps(ep.data || [], it.data || [], kt.data || [], dr.data || []);
-    return NextResponse.json({ episodes: ep.data, intakes: it.data, kits: kt.data, drafts: dr.data, suggestions });
+
+    // Weekly stats (for the check-in reminder)
+    const since = new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10);
+    const st = await supabase.from("podcast_stats").select("week_of, platform").gte("week_of", since);
+
+    // New Riverside files in the Drive drop folder (skipped quietly if Drive isn't set up yet)
+    let dropFiles: { id: string; name: string }[] = [];
+    let dropNote: string | null = null;
+    if (process.env.DRIVE_DROP_FOLDER_ID) {
+      try {
+        const files = await listDropFiles();
+        const done = await supabase.from("drop_files").select("file_id");
+        const seen = new Set((done.data || []).map((r: any) => r.file_id));
+        dropFiles = files.filter((f) => !seen.has(f.id));
+      } catch (e: any) {
+        dropNote = `Couldn't read the Riverside drop folder: ${e.message}`;
+      }
+    } else {
+      dropNote = "Riverside drop folder not connected yet (set DRIVE_DROP_FOLDER_ID in Vercel).";
+    }
+
+    const suggestions = suggestNextSteps(ep.data || [], it.data || [], kt.data || [], dr.data || [], new Date(), {
+      dropFiles,
+      stats: st.error ? undefined : st.data || [],
+    });
+    return NextResponse.json({ episodes: ep.data, intakes: it.data, kits: kt.data, drafts: dr.data, suggestions, dropNote, week: mondayOf(new Date()) });
   } catch (e: any) {
     console.error(e);
     return NextResponse.json({ error: e.message || "Could not load the assistant." }, { status: 500 });
