@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { buildShowNotes, KitExtras, Resource } from "@/lib/showNotes";
 import { FRAMEWORKS } from "@/lib/frameworks";
+import { TOPICS } from "@/lib/topics";
 
 const RESOURCE_TYPES = ["framework", "book", "person", "company", "tool", "other"];
 
@@ -34,6 +35,10 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
   const [reviewer, setReviewer] = useState("Tanisk Pandey");
   const [checks, setChecks] = useState<boolean[]>(REVIEW_CHECKS.map(() => false));
   const [reviewing, setReviewing] = useState(false);
+  const [topics, setTopics] = useState<string[]>([]);
+  const [takeawayTopics, setTakeawayTopics] = useState<(string | null)[]>([]);
+  const [topicMsg, setTopicMsg] = useState<string | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/guestkit/${params.slug}`)
@@ -43,6 +48,10 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
         setKit(body.kit);
         setResources((body.kit.resources || []).map((r: Resource) => ({ ...r, url: r.url || "" })));
         setExtras(body.kit.extras || {});
+        setTopics(body.kit.topics || []);
+        setTakeawayTopics(
+          (body.kit.takeaways || []).map((_: string, i: number) => (body.kit.takeaway_topics || [])[i] || null)
+        );
       })
       .catch((err) => setError(err.message));
   }, [params.slug]);
@@ -94,6 +103,33 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
     } finally {
       setReviewing(false);
     }
+  }
+
+  async function suggestTopics() {
+    setSuggesting(true);
+    setTopicMsg(null);
+    try {
+      const res = await fetch(`/api/guestkit/${params.slug}/tag`, { method: "POST" });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Could not suggest topics.");
+      setTopics(body.topics);
+      setTopicMsg("AI suggestion added — check it, then click Save topics.");
+    } catch (err: any) {
+      setTopicMsg(`❌ ${err.message}`);
+    } finally {
+      setSuggesting(false);
+    }
+  }
+
+  async function saveTopics() {
+    setTopicMsg(null);
+    const res = await fetch(`/api/guestkit/${params.slug}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topics, takeaway_topics: takeawayTopics }),
+    });
+    const body = await res.json();
+    setTopicMsg(res.ok ? "✅ Topics saved." : `❌ ${body.error || "Save failed."}`);
   }
 
   function downloadNotes() {
@@ -176,6 +212,54 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
               </div>
             </>
           )}
+        </div>
+
+        <div className="section">
+          <h2>Topics</h2>
+          <p className="hint" style={{ marginTop: 0 }}>
+            The same 10 topics as the Content Library. Used to filter kits and match takeaways to creators.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 10 }}>
+            {topics.length === 0 && <span style={{ fontSize: 13, color: "var(--ink-soft)" }}>No topics yet.</span>}
+            {topics.map((t) => (
+              <span key={t} style={{
+                display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 999,
+                fontSize: 12, fontWeight: 600, background: "#E6F4FC", color: "var(--af-navy)", border: "1px solid #BFE3F7",
+              }}>
+                {t}
+                <button type="button" aria-label={`Remove ${t}`} onClick={() => setTopics(topics.filter((x) => x !== t))}
+                  style={{ background: "none", color: "var(--af-navy)", padding: 0, fontSize: 13, lineHeight: 1 }}>×</button>
+              </span>
+            ))}
+            {topics.length < 3 && (
+              <select value="" onChange={(e) => e.target.value && setTopics([...topics, e.target.value])}
+                style={{ width: "auto", fontSize: 12, padding: "3px 6px" }}>
+                <option value="">+ topic</option>
+                {TOPICS.filter((t) => !topics.includes(t)).map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            )}
+            <button type="button" onClick={suggestTopics} disabled={suggesting}
+              style={{ background: "#F0F3F6", color: "var(--af-navy)", fontSize: 12.5, padding: "5px 12px" }}>
+              {suggesting ? "Thinking…" : "✨ Suggest topics"}
+            </button>
+          </div>
+
+          <details style={{ marginBottom: 12 }}>
+            <summary style={{ cursor: "pointer", fontSize: 14, fontWeight: 600 }}>Topic for each takeaway</summary>
+            {(kit.takeaways || []).map((t: string, i: number) => (
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 0", borderBottom: "1px solid var(--line)" }}>
+                <span style={{ flex: 1, fontSize: 13.5 }}>{i + 1}. {t}</span>
+                <select value={takeawayTopics[i] || ""} style={{ width: 210, fontSize: 12 }}
+                  onChange={(e) => setTakeawayTopics((tt) => tt.map((v, j) => (j === i ? e.target.value || null : v)))}>
+                  <option value="">— none —</option>
+                  {TOPICS.map((tp) => <option key={tp} value={tp}>{tp}</option>)}
+                </select>
+              </div>
+            ))}
+          </details>
+
+          <button type="button" onClick={saveTopics}>Save topics</button>
+          {topicMsg && <span style={{ marginLeft: 12, fontSize: 13 }}>{topicMsg}</span>}
         </div>
 
         <div className="section">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { TOPICS } from "@/lib/topics";
 
 interface KitRow {
   slug: string;
@@ -11,11 +12,19 @@ interface KitRow {
   created_at: string;
   resources: { url?: string }[] | null;
   status?: string;
+  topics?: string[];
 }
 
 export default function GuestKitsListPage() {
   const [kits, setKits] = useState<KitRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [topic, setTopic] = useState("");
+  const shown = useMemo(() => (kits || []).filter((k) => !topic || (k.topics || []).includes(topic)), [kits, topic]);
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {};
+    (kits || []).forEach((k) => (k.topics || []).forEach((t) => (c[t] = (c[t] || 0) + 1)));
+    return c;
+  }, [kits]);
 
   useEffect(() => {
     fetch("/api/guestkit")
@@ -46,7 +55,22 @@ export default function GuestKitsListPage() {
           </p>
         )}
 
-        {kits?.map((k) => {
+        {kits && kits.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "8px 0 16px" }}>
+            {["", ...TOPICS].map((t) => (
+              <button key={t || "all"} type="button" onClick={() => setTopic(t)}
+                style={{
+                  padding: "6px 12px", fontSize: 12.5,
+                  background: topic === t ? "var(--af-navy)" : "#F0F3F6", color: topic === t ? "#fff" : "var(--af-navy)",
+                }}>
+                {t || "All topics"}{t && counts[t] ? ` (${counts[t]})` : ""}
+              </button>
+            ))}
+          </div>
+        )}
+        {kits && topic && shown.length === 0 && <p className="hint">No kits tagged &quot;{topic}&quot; yet.</p>}
+
+        {shown.map((k) => {
           const total = k.resources?.length || 0;
           const linked = k.resources?.filter((r) => r.url && r.url.trim()).length || 0;
           return (
@@ -64,6 +88,9 @@ export default function GuestKitsListPage() {
                     {k.status === "approved" ? "APPROVED" : "DRAFT — needs review"}
                   </span>
                 </p>
+                {(k.topics || []).length > 0 && (
+                  <p style={{ fontSize: 12, color: "var(--af-navy)", margin: "0 0 4px" }}>{(k.topics || []).join(" · ")}</p>
+                )}
                 <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: 0 }}>
                   {new Date(k.created_at).toLocaleDateString()} · resource links: {linked}/{total}
                 </p>

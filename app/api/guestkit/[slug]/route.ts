@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { reviewUpdate } from "@/lib/review";
+import { cleanTopics } from "@/lib/topics";
 
 // Login required (see middleware.ts). Read one kit, or save its
 // resource links + show-notes extras.
@@ -47,6 +48,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { slug: stri
       update.extras = extras;
     }
     if (resources) update.resources = resources;
+
+    if (Array.isArray(body.topics)) update.topics = cleanTopics(body.topics).slice(0, 3);
+    if (Array.isArray(body.takeaway_topics)) {
+      update.takeaway_topics = body.takeaway_topics.map((t: unknown) => cleanTopics([t])[0] || null);
+    }
 
     const review = reviewUpdate(body);
     if (review.error) return NextResponse.json({ error: review.error }, { status: 400 });

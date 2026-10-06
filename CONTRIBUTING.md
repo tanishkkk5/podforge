@@ -18,7 +18,7 @@ Podforge's knowledge (`knowledge/`) and code are managed the same way: **propose
 - **Decisions:** first check whether a record already covers it (then amend it). Otherwise, if it trips any
   gate (broad scope · costly to reverse · changes how people work · chooses a core tool · sets a convention ·
   changes who decides · says no or not yet · reverses an earlier decision · touches a commitment · defines a
-  term or number), write a new record using `knowledge/decisions/0000-template.md`.
+  term or number), write a new record using `knowledge/templates/decision-record.md`.
 - Never delete an old decision. Mark it `superseded` and point to the new one.
 - Organize by **what a thing is**, not who wrote it or when. If it won't matter in six months, it doesn't belong here.
 

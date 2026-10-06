@@ -3,8 +3,11 @@ title: Decision record template
 type: template
 owner: tanisk-pandey
 status: accepted
-updated: 2026-10-06
+updated: 2026-10-07
+related: naming-standard
 ---
+
+Copy this into `knowledge/decisions/NNNN-short-name.md` (next free number).
 
 # NNNN — Short decision title
 

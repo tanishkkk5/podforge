@@ -101,6 +101,8 @@ export async function POST(req: NextRequest) {
         takeaways: content.takeaways,
         chapters: parsedChapters,
         best_quote: content.bestQuote,
+        topics: content.topics,
+        takeaway_topics: content.takeawayTopics,
         // AI-found resources + any Applied Frameworks framework mentioned
         // in the transcript, pre-linked to its page on appliedframeworks.com
         resources: [

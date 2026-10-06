@@ -17,13 +17,16 @@ library, and creator kits for sharing clips. Owner: **Tanisk Pandey**.
 | `knowledge/decisions/` | Decision records — what we chose, the alternatives, and **why**. |
 | `knowledge/processes/` | How the work actually runs, step by step (episode production, scheduling, deploying). |
 | `knowledge/skills/` | One page per AI helper: its one job, its owner, and how a human checks it. |
+| `knowledge/templates/` | Reusable starting points: decision record, outreach message, captions, reports. |
+| `knowledge/onboarding/` | Start here if you're new. |
+| `knowledge/domains/` | What we sell: our frameworks (`ip/`) and brand + approved messaging (`marketing/`). |
+| `knowledge/meetings/` | Notes from meetings that shaped how we work. |
 | `app/` | The website: pages (`app/admin/...`, `app/guestkit/...`) and APIs (`app/api/...`). |
 | `lib/` | Shared logic: show notes builder, topic list, framework links, AI calls. |
 | `supabase/` | Database changes (`migration_vN.sql`) — run in order in the Supabase SQL Editor. |
 | `scripts/check-knowledge.mjs` | The automatic check that every knowledge file has a proper header. |
 
-**New here?** Read in this order: `CLAUDE.md` → `knowledge/processes/episode-production.md` →
-`knowledge/standards/` → `knowledge/decisions/`.
+**New here?** Start with [`knowledge/onboarding/start-here.md`](knowledge/onboarding/start-here.md).
 
 ## What Podforge does
 

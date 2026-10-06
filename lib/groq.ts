@@ -1,7 +1,8 @@
 /**
  * Calls the Groq API (groq.com — not to be confused with xAI's Grok) to turn
  * a raw transcript into structured content: Title, hook, Summary, exactly 10
- * Key Takeaways, and the single best quote.
+ * Key Takeaways, the single best quote, and topic tags (from the fixed list
+ * in lib/topics.ts — see knowledge/decisions/0004-fixed-topic-list.md).
  *
  * Cost: $0. Groq's free tier requires no credit card — 30 requests/minute,
  * 14,400 requests/day. We make one call per episode, nowhere close to that
@@ -13,6 +14,8 @@
  * future, check https://console.groq.com/docs/models for the current
  * production model list and swap the model string below.
  */
+
+import { TOPICS, cleanTopics, Topic } from "./topics";
 
 interface ResourceMention {
   label: string; // e.g. "Acme Corp" or "The Lean Startup by Eric Ries"
@@ -27,6 +30,8 @@ interface ExtractedContent {
   bestQuote: string;
   guestTitle: string;
   resources: ResourceMention[]; // named things mentioned that likely need a link
+  topics: Topic[]; // 1–3 episode topics, fixed list only
+  takeawayTopics: (Topic | null)[]; // one topic per takeaway (same order), or null
 }
 
 // Groq's free tier caps total tokens-per-minute at 8,000 (shared across
@@ -34,7 +39,7 @@ interface ExtractedContent {
 // A full episode transcript alone can easily exceed that on its own, so we
 // truncate to a safe budget rather than let the request fail outright.
 // ~4 characters per token is a reasonable rule of thumb for English text.
-const MAX_TRANSCRIPT_CHARS = 24000; // ~6,000 tokens, leaving room for the
+const MAX_TRANSCRIPT_CHARS = 23000; // ~6,000 tokens, leaving room for the
 // prompt instructions (~400 tokens) and the model's response (~1,500 tokens)
 // within the 8,000 TPM budget. This is close to the real ceiling — pushing
 // much higher risks the same 413 error, since Groq's free tier counts
@@ -69,8 +74,12 @@ Below is the full raw transcript. Extract the following, and respond with ONLY v
   "guestTitle": "A short professional title/role for the guest, inferred from how they're introduced or what they discuss (e.g. 'Strategic Portfolio Management Expert')",
   "resources": [
     {"label": "Every specific named person, company, book, product, or tool mentioned in the conversation that a listener might want to look up — for example a book title with its author, a named company, a named software product, another podcast, an article, or a person other than the host/guest themselves. Do NOT include the host or guest's own name here. Do NOT invent a URL — just identify what should be linked.", "type": "person | company | book | tool | other"}
-  ]
+  ],
+  "topics": ["1 to 3 topics this episode is MOST about, chosen ONLY from the allowed topic list below"],
+  "takeawayTopics": ["exactly 10 entries, one per takeaway in the same order: the single best topic for that takeaway, chosen ONLY from the allowed topic list below"]
 }
+
+Allowed topic list (use these exact words, nothing else): ${TOPICS.join(" | ")}
 
 Important: "Profit Streams" must always be written as "Profit Streams®" with the registered trademark symbol, in the title, hook, and summary fields.
 
@@ -88,7 +97,7 @@ ${transcriptForPrompt}`;
     body: JSON.stringify({
       model: "openai/gpt-oss-120b",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 1500,
+      max_tokens: 1600,
       temperature: 0.4,
     }),
   });
@@ -118,6 +127,12 @@ ${transcriptForPrompt}`;
   if (!Array.isArray(parsed.resources)) {
     parsed.resources = [];
   }
+
+  // Topics are best-effort too: anything outside the fixed list is dropped,
+  // and a bad/missing answer never fails the whole kit.
+  parsed.topics = cleanTopics(parsed.topics).slice(0, 3);
+  const perTakeaway = Array.isArray(parsed.takeawayTopics) ? parsed.takeawayTopics : [];
+  parsed.takeawayTopics = parsed.takeaways.map((_: string, i: number) => cleanTopics([perTakeaway[i]])[0] || null);
 
   return { ...parsed, truncated };
 }

@@ -3,7 +3,7 @@ title: Metadata standard
 type: standard
 owner: tanisk-pandey
 status: accepted
-updated: 2026-10-06
+updated: 2026-10-07
 related: review-standard
 ---
 
@@ -17,7 +17,7 @@ can tell approved from draft, know who to ask, and spot stale content.
 ```
 ---
 title: Short human name
-type: standard | decision | process | skill | template
+type: standard | decision | process | skill | template | guide | reference | meeting
 owner: firstname-lastname
 status: draft | accepted | superseded
 updated: YYYY-MM-DD
@@ -36,3 +36,4 @@ is missing or invalid. It warns (doesn't fail) when `updated` is older than 180 
 
 **Change log:**
 - 2026-10-06 — created, adapted from the Arcario/Applied Frameworks AI-native workshop template.
+- 2026-10-07 — added types guide, reference and meeting (onboarding, domains and meeting notes).

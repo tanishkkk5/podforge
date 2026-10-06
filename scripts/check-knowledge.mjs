@@ -5,7 +5,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, basename } from "node:path";
 
 const ROOT = "knowledge";
-const TYPES = ["standard", "decision", "process", "skill", "template"];
+const TYPES = ["standard", "decision", "process", "skill", "template", "guide", "reference", "meeting"];
 const STATUSES = ["draft", "accepted", "superseded"];
 const REQUIRED = ["title", "type", "owner", "status", "updated"];
 const STALE_DAYS = 180;
