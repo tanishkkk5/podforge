@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { appendGuestRow } from "@/lib/googleSheets";
 import { Resend } from "resend";
+import { hostByKey } from "@/lib/hosts";
 
 export const runtime = "nodejs";
 
@@ -91,6 +92,8 @@ export async function POST(req: NextRequest) {
         topics: get("topics"),
         promo: get("promo"),
         session_id: sessionId,
+        // Direct submissions book on this host's calendar next (decision 0012)
+        host: sessionId ? null : hostByKey(get("host")).key,
       })
       .select()
       .single();

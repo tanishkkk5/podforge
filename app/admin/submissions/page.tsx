@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { HOSTS as SCHEDULER_HOSTS, hostByKey } from "@/lib/hosts";
 
 const HOSTS = ["Luke Hohmann", "Jason Tanner", "Tanisk Pandey", "Other"];
 
@@ -29,6 +30,8 @@ interface Submission {
   resources?: string | null;
   topics?: string | null;
   promo?: string | null;
+  host?: string | null;
+  booked_at?: string | null;
 }
 
 // Guests type these values, so only real web addresses become clickable links.
@@ -147,6 +150,9 @@ export default function SubmissionsPage() {
   const [scheduledAt, setScheduledAt] = useState("");
   const [links, setLinks] = useState<Record<string, string>>({});
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [linkHost, setLinkHost] = useState(SCHEDULER_HOSTS[0].key);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const intakeLink = typeof window !== "undefined" ? `${window.location.origin}/?host=${linkHost}` : "";
 
   // Load automatically when the page opens (the button still refreshes).
   useEffect(() => {
@@ -207,6 +213,21 @@ export default function SubmissionsPage() {
       <div className="wrap">
         <div className="section">
           {error && <div className="error-banner">{error}</div>}
+          <div style={{ marginBottom: 18, paddingBottom: 18, borderBottom: "1px solid var(--line)" }}>
+            <p style={{ fontWeight: 700, margin: "0 0 4px" }}>Guest intake link</p>
+            <p className="hint" style={{ margin: "0 0 10px" }}>
+              Send this to a guest. After the form, they book their recording on the host&apos;s calendar.
+            </p>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <select value={linkHost} onChange={(e) => setLinkHost(e.target.value)} style={{ width: "auto" }} aria-label="Host">
+                {SCHEDULER_HOSTS.map((h) => <option key={h.key} value={h.key}>{h.name}</option>)}
+              </select>
+              <input type="text" readOnly value={intakeLink} style={{ flex: 1, minWidth: 240, fontSize: 13 }} />
+              <button type="button" onClick={() => { navigator.clipboard.writeText(intakeLink); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 1500); }}>
+                {linkCopied ? "Copied!" : "Copy link"}
+              </button>
+            </div>
+          </div>
           <button type="button" onClick={loadSubmissions} disabled={loading}>
             {loading ? "Loading…" : "Refresh"}
           </button>
@@ -229,6 +250,19 @@ export default function SubmissionsPage() {
                   <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "var(--ink-soft)" }}>
                     Submitted {formatDate(s.created_at)}
                   </p>
+                  {s.host && (
+                    <p style={{ margin: "0 0 10px", fontSize: 13 }}>
+                      {s.booked_at ? (
+                        <span style={{ background: "#ECFDF3", color: "#0E8A50", fontWeight: 700, padding: "3px 10px", borderRadius: 999 }}>
+                          📅 Booked a time with {hostByKey(s.host).name} on {formatDate(s.booked_at)} — check {hostByKey(s.host).firstName}&apos;s calendar for the slot
+                        </span>
+                      ) : (
+                        <span style={{ background: "#FFF4E5", color: "#B54708", fontWeight: 700, padding: "3px 10px", borderRadius: 999 }}>
+                          Not booked yet with {hostByKey(s.host).name} — follow up if it stays this way
+                        </span>
+                      )}
+                    </p>
+                  )}
 
                   <button type="button" onClick={() => setOpen((o) => ({ ...o, [s.id]: !o[s.id] }))}
                     style={{ background: "#F0F3F6", color: "var(--af-navy)", fontSize: 13, padding: "6px 14px", marginBottom: 12 }}>

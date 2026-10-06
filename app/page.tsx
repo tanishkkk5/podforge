@@ -2,6 +2,8 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import HostScheduler from "@/app/components/HostScheduler";
+import { hostByKey } from "@/lib/hosts";
 
 interface BookEntry {
   title: string;
@@ -25,6 +27,9 @@ export default function IntakePage() {
 function IntakeForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  // Which host's calendar to show after submitting (?host=luke). Defaults to Luke.
+  const host = hostByKey(searchParams.get("host"));
+  const [guest, setGuest] = useState<{ fullName: string; email: string; id: string | null }>({ fullName: "", email: "", id: null });
 
   const [sessionInfo, setSessionInfo] = useState<{ host_name: string; scheduled_at: string } | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -77,6 +82,7 @@ function IntakeForm() {
       JSON.stringify(books.filter((b) => b.title.trim().length > 0))
     );
     if (token) formData.append("token", token);
+    else formData.append("host", host.key);
 
     try {
       const res = await fetch("/api/submit", {
@@ -84,11 +90,16 @@ function IntakeForm() {
         body: formData,
       });
 
+      const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
         throw new Error(body.error || "Something went wrong.");
       }
 
+      setGuest({
+        fullName: String(formData.get("fullName") || ""),
+        email: String(formData.get("email") || ""),
+        id: body.id || null,
+      });
       setSubmitted(true);
       window.scrollTo(0, 0);
     } catch (err: any) {
@@ -115,12 +126,16 @@ function IntakeForm() {
               />
             </svg>
           </div>
-          <h1>You&apos;re all set.</h1>
+          <h1>{token ? "You're all set." : "Thanks — your details are in."}</h1>
           <p>
-            Thanks for sending that over — we&apos;ll be in touch with recording
-            details, and we&apos;ll take it from here on building your episode kit.
+            {token
+              ? "Thanks for sending that over — we'll be in touch with recording details, and we'll take it from here on building your episode kit."
+              : "We'll take it from here on building your episode kit."}
           </p>
         </div>
+        {!token && (
+          <HostScheduler host={host} fullName={guest.fullName} email={guest.email} intakeId={guest.id} isTeam={isTeam} />
+        )}
         {isTeam && (
           <div className="wrap" style={{ padding: "0 24px" }}>
             <div className="section" style={{ borderLeft: "4px solid #F59E0B", background: "#FFFBF2" }}>
