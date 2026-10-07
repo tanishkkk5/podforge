@@ -1,6 +1,6 @@
 import { Block, formatTime } from "../captions";
 import { fixBrand } from "../showNotes";
-import { GroqRateLimitError } from "../topicTagger";
+import { groqJson } from "../groqClient";
 import { Clip, MAX_CLIP_SEC, MIN_CLIP_SEC, validatePicks } from "./clipFinder";
 
 /**
@@ -41,8 +41,6 @@ export function chaptersAsText(chapters: Chapter[]): string {
 }
 
 export async function scanChunk(chunk: Block[], guest: string, isFirst: boolean): Promise<{ clips: Clip[]; chapters: Chapter[] }> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("Missing GROQ_API_KEY environment variable.");
   const prompt = `You are a podcast editor for the Profit Streams® Podcast (business, pricing, product and portfolio leadership). Guest: ${guest || "unknown"}.
 
 Below is part of the episode transcript, split into numbered blocks of about 15 seconds.
@@ -57,26 +55,7 @@ Respond with ONLY JSON:
 Blocks:
 ${chunk.map((b) => `[${b.id}] (${formatTime(b.start)}) ${b.text}`).join("\n")}`;
 
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
-      max_tokens: 900,
-      temperature: 0.3,
-      response_format: { type: "json_object" },
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  if (res.status === 429) throw new GroqRateLimitError("Groq free-tier limit reached — waiting a minute.");
-  if (!res.ok) throw new Error(`Groq API error (${res.status}): ${await res.text()}`);
-  const data = await res.json();
-  let parsed: any = {};
-  try {
-    parsed = JSON.parse(String(data?.choices?.[0]?.message?.content || "{}").replace(/```json|```/g, "").trim());
-  } catch {
-    parsed = {};
-  }
+  const parsed = await groqJson({ prompt, maxTokens: 1500, temperature: 0.3 });
   return { clips: validatePicks(parsed?.clips, chunk), chapters: validateChapters(parsed?.chapters, chunk) };
 }
 

@@ -52,7 +52,13 @@ export default function ProductionAssistantPage() {
     setError(null);
     try {
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: payload ? JSON.stringify(payload) : undefined });
-      const body = await res.json();
+      // Don't show a cryptic "Unexpected end of JSON input" if the server sent back nothing
+      const raw = await res.text();
+      let body: any = {};
+      try { body = raw ? JSON.parse(raw) : {}; } catch { body = {}; }
+      if (!res.ok && !body.error) {
+        throw new Error(res.status === 504 ? "That took too long and timed out — please try again." : `Something went wrong (error ${res.status}) — please try again.`);
+      }
       if (!res.ok) throw new Error(body.error || "Something went wrong.");
       await load();
       return body;

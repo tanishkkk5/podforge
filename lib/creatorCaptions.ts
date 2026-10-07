@@ -1,5 +1,5 @@
 import { fixBrand } from "./showNotes";
-import { GroqRateLimitError } from "./topicTagger";
+import { GroqRateLimitError, groqJson } from "./groqClient";
 
 export interface CaptionInput {
   id: string;
@@ -67,23 +67,14 @@ excerpt: ${i.excerpt}`
   )
   .join("\n")}`;
 
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
-      max_tokens: 1800,
-      temperature: 0.6,
-      response_format: { type: "json_object" },
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  if (res.status === 429) throw new GroqRateLimitError("Groq free-tier limit reached — wait about a minute and try again.");
-  if (!res.ok) return { captions: fallbackAll(), usedFallback: true };
-
+  let parsed: any;
   try {
-    const data = await res.json();
-    const parsed = JSON.parse(String(data?.choices?.[0]?.message?.content || "").replace(/```json|```/g, "").trim());
+    parsed = await groqJson({ prompt, maxTokens: 2200, temperature: 0.6 });
+  } catch (err) {
+    if (err instanceof GroqRateLimitError) throw err;
+    return { captions: fallbackAll(), usedFallback: true };
+  }
+  try {
     const out = fallbackAll();
     let usedFallback = false;
     const got = new Map<string, any>((parsed.items || []).map((x: any) => [String(x.id), x]));

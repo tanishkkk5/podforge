@@ -16,6 +16,7 @@
  */
 
 import { TOPICS, cleanTopics, Topic } from "./topics";
+import { groqChat, stripFences } from "./groqClient";
 
 interface ResourceMention {
   label: string; // e.g. "Acme Corp" or "The Lean Startup by Eric Ries"
@@ -88,33 +89,14 @@ For "resources": be thorough — include anything a real listener would plausibl
 Transcript:
 ${transcriptForPrompt}`;
 
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 1600,
-      temperature: 0.4,
-    }),
-  });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Groq API error (${res.status}): ${errText}`);
+  // retryMaxTokens stays at 1600: transcript + answer must fit Groq's 8,000 tokens/minute
+  const rawText = await groqChat({ prompt, maxTokens: 1600, temperature: 0.4, retryMaxTokens: 1600 });
+  let parsed: any;
+  try {
+    parsed = JSON.parse(stripFences(rawText));
+  } catch {
+    throw new Error("The AI's answer wasn't readable — please click Generate again.");
   }
-
-  const data = await res.json();
-  const rawText = data.choices?.[0]?.message?.content;
-  if (!rawText) throw new Error("No text response from Groq API.");
-
-  // Strip any accidental markdown fences or leading/trailing text before parsing
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  const cleaned = jsonMatch ? jsonMatch[0] : rawText.replace(/```json|```/g, "").trim();
-  const parsed = JSON.parse(cleaned);
 
   if (!Array.isArray(parsed.takeaways) || parsed.takeaways.length !== 10) {
     throw new Error(

@@ -3,7 +3,7 @@ title: Switch to openai/gpt-oss-120b after Groq retired Llama 3.3
 type: decision
 owner: tanisk-pandey
 status: accepted
-updated: 2026-10-06
+updated: 2026-10-07
 related: 0001-free-ai-groq
 ---
 
@@ -19,6 +19,8 @@ related: 0001-free-ai-groq
 
 **Rationale:** current production model on Groq's free tier, returns clean JSON, similar quality.
 
-**Consequences:** if a `model_not_found` error appears again, check `console.groq.com/docs/models` and update every AI call (`lib/groq.ts`, `lib/topicTagger.ts`, `lib/creatorCaptions.ts`).
+**Consequences:** every AI call now goes through one file, `lib/groqClient.ts` — if a `model_not_found` error appears again, check `console.groq.com/docs/models` and change the model name there only.
+
+**Amended 2026-10-07:** this model "thinks" before answering and the thinking counts against the answer budget. With a small budget it can return an empty answer, which Groq rejects as `json_validate_failed` (seen live on the Outreach Drafter). `groqClient.ts` now asks for short thinking (`reasoning_effort: low`), gives helpers larger budgets, retries once when the answer is empty or not valid JSON, and drops `reasoning_effort` automatically if Groq ever rejects it.
 
 **Status:** accepted (supersedes the original Llama 3.3 choice)

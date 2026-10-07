@@ -1,5 +1,5 @@
 import { fixBrand } from "../showNotes";
-import { GroqRateLimitError } from "../topicTagger";
+import { groqJson } from "../groqClient";
 
 /**
  * Social Pack Writer (knowledge/skills/social-pack-writer.md).
@@ -38,8 +38,6 @@ export function assembleSocialPack(kit: KitForSocial, li: string[], ig: string[]
 }
 
 export async function draftSocialPack(kit: KitForSocial): Promise<{ title: string; content: string }> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("Missing GROQ_API_KEY environment variable.");
   const prompt = `Write social posts for the Profit Streams® Podcast's OWN LinkedIn and Instagram accounts, promoting the episode below.
 Use ONLY the material given — no new facts, numbers or claims. Write "Profit Streams®" exactly. No hashtags, no links (added later).
 
@@ -57,26 +55,7 @@ Best quote (verbatim): "${kit.best_quote || ""}"
 Takeaways:
 ${(kit.takeaways || []).map((t, i) => `${i + 1}. ${t}`).join("\n")}`;
 
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
-      max_tokens: 1200,
-      temperature: 0.6,
-      response_format: { type: "json_object" },
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  if (res.status === 429) throw new GroqRateLimitError("Groq free-tier limit reached — wait about a minute and try again.");
-  if (!res.ok) throw new Error(`Groq API error (${res.status}): ${await res.text()}`);
-  const data = await res.json();
-  let parsed: any = {};
-  try {
-    parsed = JSON.parse(String(data?.choices?.[0]?.message?.content || "{}"));
-  } catch {
-    parsed = {};
-  }
+  const parsed = await groqJson({ prompt, maxTokens: 1800, temperature: 0.6 });
   const li = (Array.isArray(parsed.linkedin) ? parsed.linkedin : []).map(String).filter((s: string) => s.trim());
   const ig = (Array.isArray(parsed.instagram) ? parsed.instagram : []).map(String).filter((s: string) => s.trim());
   if (!li.length && !ig.length) throw new Error("The AI didn't return any posts — try again.");

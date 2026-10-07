@@ -7,6 +7,7 @@ import { GroqRateLimitError } from "@/lib/topicTagger";
 // DRAFT for review. Nothing is sent — Luke's account sends it by hand.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {

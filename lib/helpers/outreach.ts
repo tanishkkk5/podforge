@@ -1,5 +1,5 @@
 import { fixBrand } from "../showNotes";
-import { GroqRateLimitError } from "../topicTagger";
+import { groqJson } from "../groqClient";
 
 /**
  * Outreach Drafter (knowledge/skills/outreach-drafter.md).
@@ -24,8 +24,6 @@ export async function draftOutreach(name: string, notes: string): Promise<{ titl
   const facts = notes.trim();
   if (!n) throw new Error("Add the person's name.");
   if (facts.length < 15) throw new Error("Add a few notes about them (their book, research, a recent post) so the message can be personal.");
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("Missing GROQ_API_KEY environment variable.");
 
   const prompt = `Write ONE sentence (max 30 words) for Luke Hohmann to include in a podcast invitation to ${n}, saying specifically why their work interests the Profit Streams® Podcast audience (product, pricing and business leaders).
 Use ONLY these notes — do not add any fact, number, title or achievement that isn't in them:
@@ -33,26 +31,8 @@ Use ONLY these notes — do not add any fact, number, title or achievement that 
 Write in Luke's first person, warm and specific, no flattery clichés, no greeting, no sign-off.
 Respond with ONLY JSON: {"line": "..."}`;
 
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
-      max_tokens: 200,
-      temperature: 0.5,
-      response_format: { type: "json_object" },
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  if (res.status === 429) throw new GroqRateLimitError("Groq free-tier limit reached — wait about a minute and try again.");
-  if (!res.ok) throw new Error(`Groq API error (${res.status}): ${await res.text()}`);
-  const data = await res.json();
-  let line = "";
-  try {
-    line = String(JSON.parse(String(data?.choices?.[0]?.message?.content || "{}")).line || "");
-  } catch {
-    line = "";
-  }
+  const parsed = await groqJson({ prompt, maxTokens: 800, temperature: 0.5 });
+  let line = String(parsed?.line || "");
   line = fixBrand(line.replace(/\s+/g, " ").trim()).slice(0, 300);
   return { title: `Outreach: invitation to ${n}`, content: outreachMessage(n, line) };
 }

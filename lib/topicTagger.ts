@@ -11,7 +11,8 @@ import { fixBrand } from "./showNotes";
  */
 const SAMPLE_CHARS = 6000; // per slice; 3 slices ≈ 4,500 tokens
 
-export class GroqRateLimitError extends Error {}
+export { GroqRateLimitError } from "./groqClient";
+import { groqJson } from "./groqClient";
 
 function sampleTranscript(t: string): { text: string; sampled: boolean } {
   const clean = t.replace(/\s+\n/g, "\n").trim();
@@ -49,31 +50,7 @@ Respond with ONLY JSON, no markdown: {"topics": ["..."], "summary": "..."}
 Transcript${sampled ? " (sampled: beginning, middle and end)" : ""}:
 ${text}`;
 
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
-      max_tokens: 600,
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-
-  if (res.status === 429) {
-    throw new GroqRateLimitError("Groq free-tier limit reached — wait about a minute and retry.");
-  }
-  if (!res.ok) throw new Error(`Groq API error (${res.status}): ${await res.text()}`);
-
-  const data = await res.json();
-  const raw = data?.choices?.[0]?.message?.content || "";
-  let parsed: any;
-  try {
-    parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
-  } catch {
-    throw new Error("Groq returned something that wasn't valid JSON.");
-  }
+  const parsed = await groqJson({ prompt, maxTokens: 900, temperature: 0.2 });
   const topics = cleanTopics(parsed.topics).slice(0, 3);
   if (topics.length === 0) throw new Error("No valid topics came back from the AI.");
   return { topics, summary: fixBrand(String(parsed.summary || "").trim()).slice(0, 300), sampled };

@@ -1,5 +1,5 @@
 import { fixBrand } from "../showNotes";
-import { GroqRateLimitError } from "../topicTagger";
+import { groqChat } from "../groqClient";
 
 /**
  * Prep Brief Writer (knowledge/skills/prep-brief-writer.md).
@@ -33,8 +33,6 @@ export async function draftPrepBrief(
   hostName: string,
   past: PastEpisode[]
 ): Promise<{ title: string; content: string }> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("Missing GROQ_API_KEY environment variable.");
 
   const books = (intake.books || []).map((b) => b.title).filter(Boolean).join("; ");
   const catalog = past
@@ -67,20 +65,7 @@ Write a brief in plain text with exactly these sections:
 5. "Worth mentioning" — their books/resources from the intake, if any.
 Keep it under 450 words. Always write "Profit Streams®".`;
 
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
-      max_tokens: 1400,
-      temperature: 0.4,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-  if (res.status === 429) throw new GroqRateLimitError("Groq free-tier limit reached — wait about a minute and try again.");
-  if (!res.ok) throw new Error(`Groq API error (${res.status}): ${await res.text()}`);
-  const data = await res.json();
-  const text = String(data?.choices?.[0]?.message?.content || "").trim();
+  const text = (await groqChat({ prompt, maxTokens: 2000, temperature: 0.4 })).trim();
   if (!text) throw new Error("The AI returned an empty brief — try again.");
   return { title: `Prep brief: ${intake.full_name} (for ${hostName})`, content: fixBrand(text) };
 }
