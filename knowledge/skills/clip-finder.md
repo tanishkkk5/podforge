@@ -13,7 +13,9 @@ related: ai-skill-standard, production-assistant, episode-production
 - **Never:** invents a time or a quote. The AI only picks numbered ~15-second blocks; the start/end times and
   opening words are taken from Riverside's own captions file by code. Picks outside the rules (too short,
   too long, block numbers that don't exist) are thrown away. Overlapping picks are removed.
-- **Input:** the Riverside captions export (`.srt`). A plain `.txt` has no times, so it's refused.
+- **Input:** Riverside's `.srt` export (exact times), or its `.txt` export **with speaker timestamps** — times are then
+  estimated within each speaker turn (within a few seconds; turns are capped at a realistic speaking length).
+  A `.txt` with no timestamps is refused.
 - **Instructions live in:** `lib/helpers/clipFinder.ts` (reading the file: `lib/captions.ts`)
 - **Owner:** Tanisk Pandey
 - **Human check:** a person watches each moment before cutting; results are saved as a draft for approval.

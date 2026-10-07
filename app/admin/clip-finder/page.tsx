@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { buildBlocks, chunkBlocks, formatTime, parseCaptions } from "@/lib/captions";
+import { buildBlocks, chunkBlocks, formatTime, hasExactTimings, parseCaptions } from "@/lib/captions";
 import { Clip, clipsAsText, selectTopClips } from "@/lib/helpers/clipFinder";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -32,7 +32,7 @@ export default function ClipFinderPage() {
     setClips(null);
     setSaved(false);
     if (!cues.length) {
-      setError("No timestamps found. Export the captions from Riverside as an .srt file (not .txt) — the Clip Finder needs the times.");
+      setError("No timestamps found. From Riverside, export the transcript as .srt, or as .txt WITH speaker timestamps — the Clip Finder needs the times.");
       return;
     }
     const chunks = chunkBlocks(buildBlocks(cues));
@@ -105,9 +105,9 @@ export default function ClipFinderPage() {
             <input type="text" value={guest} onChange={(e) => setGuest(e.target.value)} />
           </div>
           <div className="field">
-            <label>Riverside captions file (.srt)</label>
-            <p className="sub">In Riverside: open the recording → Export → Captions / Transcript → choose <strong>SRT</strong>.</p>
-            <input type="file" accept=".srt,.vtt" onChange={async (e) => {
+            <label>Riverside transcript file (.srt, or .txt with timestamps)</label>
+            <p className="sub">In Riverside: open the recording → Export → Transcript → <strong>SRT</strong> (most precise) or <strong>TXT with timestamps</strong>.</p>
+            <input type="file" accept=".srt,.vtt,.txt" onChange={async (e) => {
               const f = e.target.files?.[0];
               if (!f) return;
               setFileName(f.name);
@@ -118,8 +118,8 @@ export default function ClipFinderPage() {
           {raw && (
             <p style={{ fontSize: 13.5 }}>
               {cues.length
-                ? `✅ ${cues.length} caption lines found · episode length ${formatTime(length)}`
-                : "⚠️ No timestamps found in this file — export it as .srt from Riverside."}
+                ? `✅ ${cues.length} timed lines found · episode length ${formatTime(length)}${hasExactTimings(raw) ? "" : " · times estimated from speaker timestamps (within a few seconds)"}`
+                : "⚠️ No timestamps found in this file — export it from Riverside as .srt, or .txt with timestamps."}
             </p>
           )}
           <button type="button" onClick={run} disabled={running || !raw}>{running ? "Finding clips…" : "Find the best clips"}</button>
@@ -130,7 +130,7 @@ export default function ClipFinderPage() {
           <div className="section">
             <h2 style={{ marginTop: 0 }}>Suggested clips</h2>
             <p className="hint" style={{ marginTop: 0 }}>
-              Times come straight from Riverside&apos;s file. Watch each moment before cutting — the AI picked them, a person decides.
+              Times come from Riverside&apos;s file{hasExactTimings(raw) ? "" : " (estimated within speaker turns — check a few seconds either side)"}. Watch each moment before cutting — the AI picked them, a person decides.
             </p>
             {clips.length === 0 && <p>No strong standalone moments found.</p>}
             {clips.map((c, i) => (

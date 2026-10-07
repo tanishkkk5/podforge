@@ -72,7 +72,7 @@ export default function EpisodePipelinePage() {
       setStatus("Reading the Riverside file…");
       const file = upload || (await withRetry(() => fetch(`/api/drive/file?id=${encodeURIComponent(fileId)}`), "Read file"));
       const cues = parseCaptions(file.text);
-      if (!cues.length) throw new Error("No timestamps in that file — in Riverside, export the transcript as .srt (not .txt).");
+      if (!cues.length) throw new Error("No timestamps in that file — from Riverside, export the transcript as .srt, or .txt with speaker timestamps.");
       const blocks = buildBlocks(cues);
       const chunks = chunkBlocks(blocks);
       setStep(0, "done");
@@ -175,8 +175,8 @@ export default function EpisodePipelinePage() {
                 ))}
               </select>
             )}
-            <p className="sub" style={{ marginTop: 8 }}>…or upload it directly (Riverside → Export → Transcript → <strong>SRT</strong>):</p>
-            <input type="file" accept=".srt,.vtt" disabled={running} onChange={async (e) => {
+            <p className="sub" style={{ marginTop: 8 }}>…or upload it directly (Riverside → Export → Transcript → <strong>SRT</strong>, or <strong>TXT with timestamps</strong>):</p>
+            <input type="file" accept=".srt,.vtt,.txt" disabled={running} onChange={async (e) => {
               const f = e.target.files?.[0];
               if (f) { setUpload({ name: f.name, text: await f.text() }); setFileId(""); }
             }} />
