@@ -28,7 +28,7 @@ export async function draftOutreach(name: string, notes: string): Promise<{ titl
   const prompt = `Write ONE sentence (max 30 words) for Luke Hohmann to include in a podcast invitation to ${n}, saying specifically why their work interests the Profit Streams® Podcast audience (product, pricing and business leaders).
 Use ONLY these notes — do not add any fact, number, title or achievement that isn't in them:
 """${facts.slice(0, 1500)}"""
-Write in Luke's first person, warm and specific, no flattery clichés, no greeting, no sign-off.
+Write in Luke's first person, warm and specific: name ONE concrete detail from the notes (a title, topic, number or project) and connect it to what our listeners care about. Don't open with "I'm fascinated", "I love", "I admire" or "I've been following". No flattery clichés, no buzzwords like "actionable insights", no greeting, no sign-off.
 Respond with ONLY JSON: {"line": "..."}`;
 
   const parsed = await groqJson({ prompt, maxTokens: 800, temperature: 0.5 });

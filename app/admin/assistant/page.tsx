@@ -144,16 +144,18 @@ export default function ProductionAssistantPage() {
                         Read it, fix anything that&apos;s off, then approve. Approving copies it so you can paste it into an email draft or send it to the host — Podforge doesn&apos;t send anything.
                       </p>
                       <div style={{ display: "flex", gap: 8 }}>
-                        <button type="button" disabled={busy === d.id || !reviewer.trim()}
+                        <button type="button" disabled={busy === `approve:${d.id}` || busy === `dismiss:${d.id}` || !reviewer.trim()}
                           onClick={async () => {
                             const content = edits[d.id] ?? d.content;
-                            const r = await call(d.id, `/api/assistant/drafts/${d.id}`, "PATCH", { action: "approve", reviewer, content });
+                            const r = await call(`approve:${d.id}`, `/api/assistant/drafts/${d.id}`, "PATCH", { action: "approve", reviewer, content });
                             if (r) { navigator.clipboard.writeText(content); setCopied(d.id); setTimeout(() => setCopied(null), 2500); }
                           }}>
-                          {busy === d.id ? "Saving…" : "Approve & copy"}
+                          {busy === `approve:${d.id}` ? "Saving…" : "Approve & copy"}
                         </button>
-                        <button type="button" style={ghost} disabled={busy === d.id}
-                          onClick={() => call(d.id, `/api/assistant/drafts/${d.id}`, "PATCH", { action: "dismiss" })}>Dismiss</button>
+                        <button type="button" style={ghost} disabled={busy === `approve:${d.id}` || busy === `dismiss:${d.id}`}
+                          onClick={() => call(`dismiss:${d.id}`, `/api/assistant/drafts/${d.id}`, "PATCH", { action: "dismiss" })}>
+                          {busy === `dismiss:${d.id}` ? "Dismissing…" : "Dismiss"}
+                        </button>
                       </div>
                     </div>
                   ))}
