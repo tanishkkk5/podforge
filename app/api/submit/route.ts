@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
         resources: get("resources"),
         topics: get("topics"),
         promo: get("promo"),
+        share_commitment: get("shareCommitment") === "yes",
         session_id: sessionId,
         // Direct submissions book on this host's calendar next (decision 0012)
         host: sessionId ? null : hostByKey(get("host")).key,

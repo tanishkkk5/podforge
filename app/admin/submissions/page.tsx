@@ -32,6 +32,7 @@ interface Submission {
   promo?: string | null;
   host?: string | null;
   booked_at?: string | null;
+  share_commitment?: boolean | null;
 }
 
 // Guests type these values, so only real web addresses become clickable links.
@@ -75,7 +76,7 @@ function responseAsText(s: Submission) {
     `Short bio: ${s.short_bio || ""}`, `Long bio: ${s.long_bio || ""}`, `Headshot: ${s.headshot_url || ""}`,
     `Business site: ${s.site_biz || ""}`, `Personal site: ${s.site_personal || ""}`, `LinkedIn: ${s.linkedin || ""}`,
     `Other links: ${s.other_links || ""}`, `Books:\n${books || "(none)"}`, `Resources: ${s.resources || ""}`,
-    `Topics: ${s.topics || ""}`, `Promotion plans: ${s.promo || ""}`,
+    `Topics: ${s.topics || ""}`, `Promotion plans: ${s.promo || ""}`, `Will share within 24h of launch: ${s.share_commitment ? "yes" : "not ticked"}`,
   ].join("\n");
 }
 
@@ -131,6 +132,7 @@ function FullResponse({ s }: { s: Submission }) {
       <Answer label="Resources they want linked" value={s.resources} />
       <Answer label="Topics they'd like to cover" value={s.topics} />
       <Answer label="How they plan to promote the episode" value={s.promo} />
+      <Answer label="Will share within 24 hours of launch?" value={s.share_commitment ? "✅ Yes — they ticked the launch-day box" : "Not ticked (optional)"} />
 
       <button type="button"
         onClick={() => { navigator.clipboard.writeText(responseAsText(s)); setCopied(true); setTimeout(() => setCopied(false), 1500); }}

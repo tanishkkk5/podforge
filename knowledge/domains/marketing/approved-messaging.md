@@ -23,6 +23,15 @@ related: brand-profit-streams, links-and-affiliate-tag, social-captions
 - Connect with Luke Hohmann on LinkedIn: https://www.linkedin.com/in/lukehohmann/
 - Listen: https://profit-streams.com/profit-streams-podcast
 
+**Launch:** Saturdays, 7:30 AM ET, on Apple Podcasts and Spotify (decision 0015).
+
+**Asking guests to share (never pressure):** "The first 24 hours after launch make the biggest difference for reach,
+so if you're able to post on Saturday or Sunday, that would be wonderful."
+
+**Amazon disclosure:** show notes — "As an Amazon Associate, Applied Frameworks earns from qualifying purchases."
+LinkedIn — "#ad · As an Amazon Associate, we earn from qualifying purchases." Amazon links: episode notes and
+AF's LinkedIn only — never Instagram, guest captions or emails.
+
 **Closing line for show notes:** "Production and marketing by Applied Frameworks."
 
 **Hashtags:** #ProfitStreamsPodcast #Leadership (Instagram adds #Podcast).

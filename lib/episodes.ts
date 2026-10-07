@@ -31,6 +31,7 @@ export interface Episode {
   stage: StageKey;
   drive_folder_id?: string | null;
   guest_posted_at?: string | null;
+  published_at?: string | null;
 }
 export interface Intake {
   id: string;
@@ -71,7 +72,15 @@ const norm = (s: string | null | undefined) => (s || "").trim().toLowerCase().re
 const DAY = 24 * 60 * 60 * 1000;
 export const FOLLOW_UP_AFTER_DAYS = 2;
 export const NEW_INTAKE_WINDOW_DAYS = 60;
-export const GUEST_REMINDER_AFTER_DAYS = 7;
+// Episodes launch Saturdays 7:30 AM ET; the share window is the first 24 hours (decision 0015).
+export const GUEST_REMINDER_AFTER_HOURS = 24;
+
+/** True when the guest posted within 24 hours of launch. */
+export function sharedWithin24h(e: { published_at?: string | null; guest_posted_at?: string | null }): boolean {
+  if (!e.published_at || !e.guest_posted_at) return false;
+  const diff = new Date(e.guest_posted_at).getTime() - new Date(e.published_at).getTime();
+  return diff <= GUEST_REMINDER_AFTER_HOURS * 3600 * 1000;
+}
 
 /** Monday (YYYY-MM-DD, UTC) of the week containing `d`. */
 export function mondayOf(d: Date): string {
@@ -166,10 +175,11 @@ export function suggestNextSteps(
     if (kit?.status === "approved" && !hasDraft(e.id, "guest_share")) {
       out.push({ kind: "draft", key: `draft:${e.id}:guest_share`, episodeId: e.id, helper: "guest_share", text: `Draft the email that sends ${e.guest_name} their guest kit?` });
     }
-    const shared = approvedDraft(e.id, "guest_share");
-    if (shared?.reviewed_at && !e.guest_posted_at && !hasDraft(e.id, "guest_reminder") &&
-        now.getTime() - new Date(shared.reviewed_at).getTime() >= GUEST_REMINDER_AFTER_DAYS * DAY) {
-      out.push({ kind: "draft", key: `draft:${e.id}:guest_reminder`, episodeId: e.id, helper: "guest_reminder", text: `${e.guest_name} hasn't shared their kit after a week — draft a friendly reminder?` });
+    // Reminder: launched 24h+ ago, kit email was sent (approved), guest hasn't posted yet
+    if (e.stage === "published" && e.published_at && approvedDraft(e.id, "guest_share") && !e.guest_posted_at &&
+        !hasDraft(e.id, "guest_reminder") &&
+        now.getTime() - new Date(e.published_at).getTime() >= GUEST_REMINDER_AFTER_HOURS * 3600 * 1000) {
+      out.push({ kind: "draft", key: `draft:${e.id}:guest_reminder`, episodeId: e.id, helper: "guest_reminder", text: `${e.guest_name}'s episode launched 24+ hours ago and they haven't shared yet — draft a friendly reminder?` });
     }
 
     // 4. Human-only steps the agent reminds about

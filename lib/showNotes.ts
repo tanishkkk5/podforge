@@ -11,6 +11,10 @@
 
 export const AFFILIATE_TAG = "profitstrea0b-20";
 
+/** Required wherever an Amazon affiliate link appears (Amazon Associates + FTC; decision 0015). */
+export const AMAZON_DISCLOSURE = "As an Amazon Associate, Applied Frameworks earns from qualifying purchases.";
+export const isAmazonUrl = (url: string) => /(^|\.)amazon\.[a-z.]+$/i.test((() => { try { return new URL(url).hostname; } catch { return ""; } })());
+
 export const STANDARD_RESOURCES = [
   {
     label: "Get the #1 best-selling Profit Streams® book",
@@ -92,6 +96,8 @@ export function buildShowNotes(kit: ShowNotesKit): { text: string; missing: stri
   // Title + hook + summary
   push(fixBrand(`Ep-${ep} ${kit.title} — with ${kit.guest_name}`), "");
   push(fixBrand(kit.hook), "");
+  // Disclosure BEFORE any links (the standard Profit Streams® book link is always an Amazon link)
+  push(`Book links in these notes are Amazon affiliate links. ${AMAZON_DISCLOSURE}`, "");
   push(fixBrand(`${kit.summary} ${kit.guest_name} joins host ${kit.host_name} for this conversation.`), "");
 
   // Discussion list

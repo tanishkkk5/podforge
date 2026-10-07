@@ -14,7 +14,7 @@ export async function GET() {
     const supabase = getSupabaseAdmin();
     const [ep, it, kt, dr] = await Promise.all([
       supabase.from("episodes").select("*").order("created_at", { ascending: false }),
-      supabase.from("guest_intakes").select("id, created_at, full_name, email, host, booked_at, session_id").order("created_at", { ascending: false }),
+      supabase.from("guest_intakes").select("id, created_at, full_name, email, host, booked_at, session_id, share_commitment").order("created_at", { ascending: false }),
       supabase.from("guest_kits").select("slug, guest_name, episode_number, status"),
       supabase.from("agent_drafts").select("*").order("created_at", { ascending: false }).limit(100),
     ]);

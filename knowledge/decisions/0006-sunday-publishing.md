@@ -2,9 +2,10 @@
 title: Publish every Sunday at 7:30 AM ET
 type: decision
 owner: tanisk-pandey
-status: accepted
-updated: 2026-10-06
+status: superseded
+updated: 2026-10-07
 related: episode-production
+superseded_by: 0015-saturday-launch-24h-share-window-affiliate-rules
 ---
 
 # 0006 — Publish every Sunday at 7:30 AM ET
@@ -21,4 +22,4 @@ related: episode-production
 
 **Consequences:** episodes must be edited and scheduled before the weekend; social posts go out Sunday evening IST. Exceptions (e.g. a Saturday release) should be noted in the episode's tracker.
 
-**Status:** accepted
+**Status:** superseded by 0015 (Saturday 7:30 AM ET launches, Oct 2026)

@@ -26,9 +26,12 @@ follow-ups and prep briefs for you to approve (decision 0013).
    Spotify/Apple links, related episode → Save → copy the Show Notes.
 8. **Review and approve** the kit (review standard) → only then send the guest their link.
 9. **Add to the Content Library**: the episode + its 3 clips, with Drive video links. Check the AI's topic tags.
-10. **Publish** Sunday 7:30 AM ET (decision 0006).
+10. **Friday:** approve and send the guest their kit email ("goes live tomorrow" — no Amazon links).
+    **Saturday 7:30 AM ET: publish** (decision 0015), then mark the episode **Published** in Production Assistant
+    (this records the launch time for the 24-hour share window).
 11. **Promote**: approve the Social Pack (LinkedIn + Instagram posts) and the guest's share email; mark
-    "guest posted" when they do (a reminder is drafted after 7 days if not). Make Creator Kits — approve before sending.
+    "guest posted" when they do (a reminder is drafted 24 hours after launch if not). AF LinkedIn posts carry the
+    book link + disclosure in the first comment; Instagram never gets an Amazon link. Make Creator Kits — approve before sending.
 12. **Monday:** weekly stats check-in (`weekly-stats.md`).
 
 Done when: episode live · guest has an approved kit · show notes published · clips in the library.

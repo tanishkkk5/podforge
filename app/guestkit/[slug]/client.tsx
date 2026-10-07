@@ -22,7 +22,14 @@ interface Kit {
     takeaways: string[];
     chapters: string[];
   };
+  extras?: { spotifyUrl?: string; appleUrl?: string } | null;
 }
+
+// Guests share the EPISODE link — never Applied Frameworks' Amazon affiliate
+// link (Amazon only allows it on AF's own registered sites; decision 0015).
+// The book links live in the episode notes, with the required disclosure.
+const LISTEN_PAGE = "https://profit-streams.com/profit-streams-podcast";
+const episodeLink = (k: Kit) => k.extras?.spotifyUrl?.trim() || k.extras?.appleUrl?.trim() || LISTEN_PAGE;
 
 function CaptionBlock({ platform, text }: { platform: string; text: string }) {
   const [copied, setCopied] = useState(false);
@@ -140,25 +147,30 @@ function AssetCard({
 export default function GuestKitClient({ kit }: { kit: Kit }) {
   const epTag = `EP-${kit.episode_number}`;
 
+  const link = episodeLink(kit);
+  // LinkedIn: link in the post · Instagram: links aren't clickable in captions
+  const liEnd = `🎧 Listen: ${link}\n📘 The book we discussed is linked in the episode notes.\n\n#ProfitStreamsPodcast #Leadership`;
+  const igEnd = `🎧 Search "Profit Streams Podcast" on Spotify or Apple Podcasts.\n📘 The book we discussed is linked in the episode notes.\n.\n.\n.\n#ProfitStreamsPodcast #Leadership #Podcast`;
+
   const titleCaptions = {
-    li: `${kit.hook}\n\nIn this episode of the Profit Streams® Podcast, ${kit.guest_name} joins ${kit.host_name} to talk about it.\n\nFull episode link in comments 🎧\n\n#ProfitStreamsPodcast #Leadership`,
-    ig: `${kit.hook} 🎧\n\nNew episode with ${kit.guest_name} is live now — link in bio.\n\n.\n.\n.\n#ProfitStreamsPodcast #Leadership #Podcast`,
+    li: `${kit.hook}\n\nI joined ${kit.host_name} on the Profit Streams® Podcast to talk about it.\n\n${liEnd}`,
+    ig: `${kit.hook} 🎧\n\nMy conversation with ${kit.host_name} on the Profit Streams® Podcast is out now.\n\n${igEnd}`,
   };
   const quoteCaptions = {
-    li: `"${kit.best_quote}"\n\n— ${kit.guest_name}, on this week's Profit Streams® Podcast\n\nFull episode link in comments.\n\n#ProfitStreamsPodcast #Leadership`,
-    ig: `Said it best 👆\n\nNew episode with ${kit.guest_name} is live now — link in bio 🎧\n\n.\n.\n.\n#Leadership #QuoteOfTheDay #ProfitStreamsPodcast`,
+    li: `"${kit.best_quote}"\n\nFrom my conversation with ${kit.host_name} on the Profit Streams® Podcast.\n\n${liEnd}`,
+    ig: `Said on the Profit Streams® Podcast 👆\n\n${igEnd}`,
   };
   const takeawaysCaptions = {
-    li: `10 things ${kit.guest_name} taught us on the Profit Streams® Podcast 👇\n\nSwipe through — full conversation with ${kit.host_name} is out now, link in comments.\n\n#ProfitStreamsPodcast #Leadership`,
-    ig: `10 lessons from our latest episode 🧠\n\nSwipe ➡️ for all 10. New episode live now — link in bio 🎧\n\n.\n.\n.\n#ProfitStreamsPodcast #Leadership`,
+    li: `10 ideas from my conversation with ${kit.host_name} on the Profit Streams® Podcast 👇\n\nSwipe through — the full episode is out now.\n\n${liEnd}`,
+    ig: `10 lessons from my Profit Streams® Podcast episode 🧠 Swipe ➡️ for all 10.\n\n${igEnd}`,
   };
   const summaryCaptions = {
-    li: `${kit.hook}\n\nThat's the big idea from this week's Profit Streams® Podcast with ${kit.guest_name}.\n\nFull episode link in comments 🎧\n\n#ProfitStreamsPodcast #Leadership`,
-    ig: `${kit.hook} 💡\n\nNew episode with ${kit.guest_name} — link in bio 🎧\n\n.\n.\n.\n#ProfitStreamsPodcast #Leadership #Podcast`,
+    li: `${kit.hook}\n\nThat's the big idea from my episode of the Profit Streams® Podcast with ${kit.host_name}.\n\n${liEnd}`,
+    ig: `${kit.hook} 💡\n\n${igEnd}`,
   };
   const chaptersCaptions = {
-    li: `Here's exactly what we covered with ${kit.guest_name} this week — timestamped, so you can jump to what matters to you.\n\nFull episode link in comments 🎧\n\n#ProfitStreamsPodcast`,
-    ig: `Full episode breakdown ⏱️ — swipe to see what we cover, minute by minute.\n\nNew episode live now — link in bio 🎧\n\n.\n.\n.\n#ProfitStreamsPodcast`,
+    li: `Here's everything ${kit.host_name} and I covered on the Profit Streams® Podcast — timestamped, so you can jump to what matters to you.\n\n${liEnd}`,
+    ig: `Episode breakdown ⏱️ — swipe to see what we covered, minute by minute.\n\n${igEnd}`,
   };
 
   return (
@@ -170,6 +182,10 @@ export default function GuestKitClient({ kit }: { kit: Kit }) {
           <p>
             Thanks for joining, {kit.guest_name.split(" ")[0]}! Everything below is ready to
             download and post — pick whichever caption feels most like you.
+          </p>
+          <p style={{ marginTop: 12, padding: "10px 14px", background: "rgba(255,255,255,0.12)", borderRadius: 8 }}>
+            🚀 <strong>Launch weekend:</strong> your episode goes live on <strong>Saturday at 7:30 AM ET</strong>. Posting within the
+            first 24 hours is the single biggest boost for its reach — thank you!
           </p>
         </div>
       </header>

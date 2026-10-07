@@ -10,6 +10,9 @@ related: brand-visuals, approved-messaging
 # Social caption templates
 
 Always **@-tag the guest** when the show's accounts post. Write LinkedIn and Instagram versions separately.
+AF LinkedIn posts: put the episode link + tagged Amazon book link + "#ad · As an Amazon Associate, we earn from
+qualifying purchases." in the **first comment**. Instagram: **no Amazon links** — "the book is linked in the
+episode notes". Guests' own posts: episode link only (decision 0015).
 
 **Announcement — LinkedIn**
 ```

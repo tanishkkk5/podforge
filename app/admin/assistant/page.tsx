@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { STAGES, stageLabel, Suggestion } from "@/lib/episodes";
+import { STAGES, stageLabel, Suggestion, sharedWithin24h } from "@/lib/episodes";
 import { hostByKey } from "@/lib/hosts";
 
 interface Episode {
   id: string; created_at: string; guest_name: string; guest_email: string | null; host_key: string;
   episode_number: string | null; intake_id: string | null; guest_kit_slug: string | null; stage: string;
-  drive_folder_id?: string | null; guest_posted_at?: string | null;
+  drive_folder_id?: string | null; guest_posted_at?: string | null; published_at?: string | null;
 }
 interface Draft {
   id: string; created_at: string; episode_id: string | null; helper: string; title: string | null;
@@ -22,7 +22,7 @@ const ghost: React.CSSProperties = { background: "#F0F3F6", color: "var(--af-nav
 const fmt = (iso: string) => new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
 export default function ProductionAssistantPage() {
-  const [data, setData] = useState<{ episodes: Episode[]; drafts: Draft[]; suggestions: Suggestion[]; dropNote?: string | null } | null>(null);
+  const [data, setData] = useState<{ episodes: Episode[]; drafts: Draft[]; suggestions: Suggestion[]; dropNote?: string | null; intakes?: { id: string; share_commitment?: boolean }[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -208,11 +208,13 @@ export default function ProductionAssistantPage() {
                           {e.guest_kit_slug && <> · <a href={`/admin/guest-kits/${e.guest_kit_slug}`}>guest kit</a></>}
                           {e.intake_id && <> · <a href="/admin/submissions">intake</a></>}
                           {e.drive_folder_id && <> · <a href={`https://drive.google.com/drive/folders/${e.drive_folder_id}`} target="_blank" rel="noreferrer">Drive ↗</a></>}
+                          {data.intakes?.find((i) => i.id === e.intake_id)?.share_commitment && <> · 🤝 promised to share on launch day</>}
+                          {e.published_at && <> · launched {fmt(e.published_at)}</>}
                         </span>
                         {e.guest_kit_slug && (
                           <button type="button" style={{ ...ghost, ...(e.guest_posted_at ? { background: "#ECFDF3", color: "#0E8A50" } : {}) }}
                             onClick={() => call(`posted:${e.id}`, `/api/episodes/${e.id}`, "PATCH", { guest_posted: !e.guest_posted_at })}>
-                            {e.guest_posted_at ? "Guest posted ✅" : "Mark guest posted"}
+                            {e.guest_posted_at ? (sharedWithin24h(e) ? "Guest posted ✅ within 24h" : "Guest posted ✅") : "Mark guest posted"}
                           </button>
                         )}
                         <select value={e.stage} aria-label={`Stage for ${e.guest_name}`} style={{ width: "auto", fontSize: 12.5 }}

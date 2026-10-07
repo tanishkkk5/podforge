@@ -426,6 +426,19 @@ function IntakeForm() {
           </div>
         </div>
 
+        <div className="section">
+          <h2>What happens after we record</h2>
+          <ul style={{ fontSize: 15, lineHeight: 1.7, paddingLeft: 20, margin: "0 0 14px" }}>
+            <li>Episodes go live on <strong>Saturdays at 7:30 AM ET</strong> on Apple Podcasts and Spotify.</li>
+            <li>The day before, you&apos;ll get your <strong>episode kit</strong>: quote cards, clips and ready-to-post captions — copy, tweak, post.</li>
+            <li><strong>The first 24 hours after launch matter most.</strong> A post from you on launch weekend is the single biggest boost for your episode&apos;s reach.</li>
+          </ul>
+          <label style={{ display: "flex", gap: 10, alignItems: "flex-start", fontWeight: 400, fontSize: 15 }}>
+            <input type="checkbox" name="shareCommitment" value="yes" style={{ width: "auto", marginTop: 4 }} />
+            <span>Count me in — I&apos;ll share the episode within 24 hours of launch. <span className="sub">(Optional, and no pressure — it just helps us plan.)</span></span>
+          </label>
+        </div>
+
         <div className="submit-row">
           <button type="submit" disabled={submitting}>
             {submitting ? "Sending…" : "Send my details"}

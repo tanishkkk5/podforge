@@ -20,6 +20,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       if (typeof b[k] === "string") update[k] = b[k].trim() || null;
     }
     const supabase = getSupabaseAdmin();
+    // Record the launch time the first time an episode is marked Published (starts the 24h share window)
+    if (update.stage === "published") {
+      const { data: cur } = await supabase.from("episodes").select("published_at").eq("id", params.id).single();
+      if (cur && !cur.published_at) update.published_at = new Date().toISOString();
+    }
     const { data, error } = await supabase.from("episodes").update(update).eq("id", params.id).select().single();
     if (error) throw new Error(error.message);
     return NextResponse.json({ episode: data });
