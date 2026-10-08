@@ -8,7 +8,7 @@ import { cleanTopics } from "@/lib/topics";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const EXTRA_KEYS = ["guestLinkedin", "guestOtherLinks", "hostLinkedin", "spotifyUrl", "appleUrl", "relatedEpisode"];
+const EXTRA_KEYS = ["episodePageUrl", "guestLinkedin", "guestOtherLinks", "hostLinkedin", "spotifyUrl", "appleUrl", "relatedEpisode"];
 
 export async function GET(_req: NextRequest, { params }: { params: { slug: string } }) {
   try {

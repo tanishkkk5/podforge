@@ -29,8 +29,9 @@ related: brand-profit-streams, links-and-affiliate-tag, social-captions
 so if you're able to post on Saturday or Sunday, that would be wonderful."
 
 **Amazon disclosure:** show notes — "As an Amazon Associate, Applied Frameworks earns from qualifying purchases."
-LinkedIn — "#ad · As an Amazon Associate, we earn from qualifying purchases." Amazon links: episode notes and
-AF's LinkedIn only — never Instagram, guest captions or emails.
+LinkedIn — "#ad · As an Amazon Associate, we earn from qualifying purchases." Amazon links: the episode page on
+profit-streams.com and AF's LinkedIn only — never Spotify/Apple descriptions, Instagram, guest captions or emails.
+Guests link to the episode page ("🎧 Listen + get the book we discussed: [episode page]").
 
 **Closing line for show notes:** "Production and marketing by Applied Frameworks."
 

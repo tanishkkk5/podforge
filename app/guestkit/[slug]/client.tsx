@@ -22,14 +22,16 @@ interface Kit {
     takeaways: string[];
     chapters: string[];
   };
-  extras?: { spotifyUrl?: string; appleUrl?: string } | null;
+  extras?: { spotifyUrl?: string; appleUrl?: string; episodePageUrl?: string } | null;
 }
 
 // Guests share the EPISODE link — never Applied Frameworks' Amazon affiliate
 // link (Amazon only allows it on AF's own registered sites; decision 0015).
 // The book links live in the episode notes, with the required disclosure.
 const LISTEN_PAGE = "https://profit-streams.com/profit-streams-podcast";
-const episodeLink = (k: Kit) => k.extras?.spotifyUrl?.trim() || k.extras?.appleUrl?.trim() || LISTEN_PAGE;
+// The episode's page on profit-streams.com comes first: it has the book links (decision 0015).
+const episodeLink = (k: Kit) =>
+  k.extras?.episodePageUrl?.trim() || k.extras?.spotifyUrl?.trim() || k.extras?.appleUrl?.trim() || LISTEN_PAGE;
 
 function CaptionBlock({ platform, text }: { platform: string; text: string }) {
   const [copied, setCopied] = useState(false);
@@ -149,7 +151,7 @@ export default function GuestKitClient({ kit }: { kit: Kit }) {
 
   const link = episodeLink(kit);
   // LinkedIn: link in the post · Instagram: links aren't clickable in captions
-  const liEnd = `🎧 Listen: ${link}\n📘 The book we discussed is linked in the episode notes.\n\n#ProfitStreamsPodcast #Leadership`;
+  const liEnd = `🎧 Listen + get the book we discussed: ${link}\n\n#ProfitStreamsPodcast #Leadership`;
   const igEnd = `🎧 Search "Profit Streams Podcast" on Spotify or Apple Podcasts.\n📘 The book we discussed is linked in the episode notes.\n.\n.\n.\n#ProfitStreamsPodcast #Leadership #Podcast`;
 
   const titleCaptions = {

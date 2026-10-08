@@ -21,8 +21,10 @@ related: show-notes-lenny-format, 0015-saturday-launch-24h-share-window-affiliat
 6. **Disclosure wherever an Amazon link appears** — show notes: "As an Amazon Associate, Applied Frameworks earns
    from qualifying purchases." (added automatically, before any links); LinkedIn: "#ad · As an Amazon Associate,
    we earn from qualifying purchases."
-7. **Amazon affiliate links only on AF's own registered places:** episode notes and AF's **LinkedIn** page.
-   **Never** on Instagram (not registered), **never** in emails to guests, **never** in guest captions.
+7. **Amazon affiliate links only on AF's registered sites: profit-streams.com (each episode's page) and AF's
+   LinkedIn page.** **Never** in Spotify/Apple descriptions (use the "Spotify / Apple" show notes version — books
+   point to the episode page), **never** on Instagram, **never** in emails to guests, **never** in guest captions
+   (guests link to the episode page). Short links (a.co, amzn.to) count as Amazon links.
 8. Plain calls to action only ("📘 Get the book") — no rewards or "support us" asks; never ask guests or colleagues
    to buy through AF's link.
 

@@ -17,7 +17,7 @@ export interface KitForSocial {
   host_name: string;
   episode_number: string | null;
   resources?: { label: string; type: string; url?: string }[] | null;
-  extras?: { spotifyUrl?: string; appleUrl?: string } | null;
+  extras?: { spotifyUrl?: string; appleUrl?: string; episodePageUrl?: string } | null;
 }
 
 const LISTEN = "https://profit-streams.com/profit-streams-podcast";
@@ -37,7 +37,7 @@ export function bookToPromote(kit: KitForSocial): { title: string; url: string }
  */
 export function assembleSocialPack(kit: KitForSocial, li: string[], ig: string[]): string {
   const tag = `@${kit.guest_name}`;
-  const episode = kit.extras?.spotifyUrl?.trim() || kit.extras?.appleUrl?.trim() || LISTEN;
+  const episode = kit.extras?.episodePageUrl?.trim() || kit.extras?.spotifyUrl?.trim() || kit.extras?.appleUrl?.trim() || LISTEN;
   const book = bookToPromote(kit);
   const firstComment =
     `🎧 Full episode: ${episode}\n📘 Get the book — ${book.title}: ${book.url}\n\n#ad · As an Amazon Associate, we earn from qualifying purchases.`;

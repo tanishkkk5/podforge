@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { buildShowNotes, KitExtras, Resource } from "@/lib/showNotes";
+import { buildShowNotes, KitExtras, Resource, ShowNotesVariant } from "@/lib/showNotes";
 import { FRAMEWORKS } from "@/lib/frameworks";
 import { TOPICS } from "@/lib/topics";
 
@@ -16,6 +16,7 @@ const REVIEW_CHECKS = [
 ];
 
 const EXTRA_FIELDS: { key: keyof KitExtras; label: string; hint?: string; multiline?: boolean }[] = [
+  { key: "episodePageUrl", label: "Episode page on profit-streams.com", hint: "Guests' posts link here, and the Spotify/Apple show notes send book clicks here — it's AF's registered Amazon Associates site." },
   { key: "guestLinkedin", label: "Guest LinkedIn URL" },
   { key: "guestOtherLinks", label: "Other guest links", hint: 'One per line, e.g. "Website: https://..."', multiline: true },
   { key: "hostLinkedin", label: "Host LinkedIn URL", hint: "Leave blank for Luke, Laura or Kevin — filled in automatically." },
@@ -32,6 +33,7 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [variant, setVariant] = useState<ShowNotesVariant>("website");
   const [reviewer, setReviewer] = useState("Tanisk Pandey");
   const [checks, setChecks] = useState<boolean[]>(REVIEW_CHECKS.map(() => false));
   const [reviewing, setReviewing] = useState(false);
@@ -57,8 +59,8 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
   }, [params.slug]);
 
   const notes = useMemo(
-    () => (kit ? buildShowNotes({ ...kit, resources, extras }) : { text: "", missing: [] }),
-    [kit, resources, extras]
+    () => (kit ? buildShowNotes({ ...kit, resources, extras }, variant) : { text: "", missing: [] }),
+    [kit, resources, extras, variant]
   );
 
   function updateResource(i: number, patch: Partial<Resource>) {
@@ -136,7 +138,7 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
     const blob = new Blob([notes.text], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `Show Notes (Lenny Format) - EP-${kit.episode_number} ${kit.guest_name}.txt`;
+    a.download = `Show Notes (${variant === "website" ? "Website" : "Spotify-Apple"}) - EP-${kit.episode_number} ${kit.guest_name}.txt`;
     a.click();
     URL.revokeObjectURL(a.href);
   }
@@ -355,6 +357,19 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
 
         <div className="section">
           <h2>Show Notes (Lenny Format)</h2>
+          <div style={{ display: "flex", gap: 8, margin: "0 0 10px" }}>
+            {([["website", "Website (profit-streams.com)"], ["platforms", "Spotify / Apple"]] as [ShowNotesVariant, string][]).map(([v, label]) => (
+              <button key={v} type="button" onClick={() => setVariant(v)}
+                style={{ padding: "6px 14px", fontSize: 13, background: variant === v ? "var(--af-navy)" : "#F0F3F6", color: variant === v ? "#fff" : "var(--af-navy)" }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="hint" style={{ marginTop: 0 }}>
+            {variant === "website"
+              ? "For the episode's page on profit-streams.com — AF's registered Amazon Associates site — with tagged book links and the disclosure."
+              : "For Spotify and Apple episode descriptions — they aren't registered with Amazon Associates, so there are NO Amazon links; books point to the episode page."}
+          </p>
           {notes.missing.length > 0 ? (
             <div className="error-banner" style={{ textAlign: "left" }}>
               <strong>Still missing ({notes.missing.length}):</strong>
@@ -375,7 +390,7 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
                 setTimeout(() => setCopied(false), 1800);
               }}
             >
-              {copied ? "Copied!" : "Copy Show Notes"}
+              {copied ? "Copied!" : variant === "website" ? "Copy website version" : "Copy Spotify/Apple version"}
             </button>
             <button type="button" onClick={downloadNotes} style={{ background: "#F0F3F6", color: "var(--af-navy)" }}>
               Download .txt

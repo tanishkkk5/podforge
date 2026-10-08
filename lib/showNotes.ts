@@ -13,7 +13,12 @@ export const AFFILIATE_TAG = "profitstrea0b-20";
 
 /** Required wherever an Amazon affiliate link appears (Amazon Associates + FTC; decision 0015). */
 export const AMAZON_DISCLOSURE = "As an Amazon Associate, Applied Frameworks earns from qualifying purchases.";
-export const isAmazonUrl = (url: string) => /(^|\.)amazon\.[a-z.]+$/i.test((() => { try { return new URL(url).hostname; } catch { return ""; } })());
+/** Any Amazon link, including short links (a.co, amzn.to, amzn.eu). */
+export const isAmazonUrl = (url: string) => {
+  let host = "";
+  try { host = new URL((url || "").trim()).hostname.toLowerCase(); } catch { return false; }
+  return /(^|\.)amazon\.[a-z.]+$/.test(host) || /(^|\.)(a\.co|amzn\.to|amzn\.eu|amzn\.asia)$/.test(host);
+};
 
 export const STANDARD_RESOURCES = [
   {
@@ -44,7 +49,17 @@ export interface KitExtras {
   spotifyUrl?: string;
   appleUrl?: string;
   relatedEpisode?: string; // e.g. "Ep-48: ... with Garrick van Buren — https://..."
+  episodePageUrl?: string; // this episode's page on profit-streams.com (registered with Amazon Associates)
 }
+
+/**
+ * Two versions of the show notes (decision 0015):
+ *  - "website":   for the episode's page on profit-streams.com — AF's registered Amazon Associates
+ *                 site — with tagged Amazon book links and the disclosure.
+ *  - "platforms": for Spotify / Apple episode descriptions (NOT registered) — no Amazon links at all;
+ *                 every book points to the episode page instead.
+ */
+export type ShowNotesVariant = "website" | "platforms";
 
 export interface ShowNotesKit {
   episode_number: string;
@@ -84,9 +99,15 @@ export function isShortAmazonLink(url: string): boolean {
   return /^https?:\/\/(www\.)?(a\.co|amzn\.to)\//i.test((url || "").trim());
 }
 
-export function buildShowNotes(kit: ShowNotesKit): { text: string; missing: string[] } {
+export function buildShowNotes(kit: ShowNotesKit, variant: ShowNotesVariant = "website"): { text: string; missing: string[] } {
   const missing: string[] = [];
   const extras = kit.extras || {};
+  const platforms = variant === "platforms";
+  const episodePage = extras.episodePageUrl?.trim() || "";
+  const pageOrPlaceholder = episodePage || "[add episode page link]";
+  if (!episodePage) missing.push("This episode's page on profit-streams.com (guests' posts and the Spotify/Apple book links point there)");
+  // On Spotify/Apple, never an Amazon link: send people to the episode page instead
+  const safeUrl = (url: string) => (platforms && isAmazonUrl(url) ? pageOrPlaceholder : url);
   const resources = (kit.resources || []).map((r) => ({ ...r, url: (r.url || "").trim() }));
   const ep = (kit.episode_number || "").trim();
 
@@ -96,8 +117,10 @@ export function buildShowNotes(kit: ShowNotesKit): { text: string; missing: stri
   // Title + hook + summary
   push(fixBrand(`Ep-${ep} ${kit.title} — with ${kit.guest_name}`), "");
   push(fixBrand(kit.hook), "");
-  // Disclosure BEFORE any links (the standard Profit Streams® book link is always an Amazon link)
-  push(`Book links in these notes are Amazon affiliate links. ${AMAZON_DISCLOSURE}`, "");
+  // Website: disclosure BEFORE any links (the standard Profit Streams® book link is always an Amazon link).
+  // Platforms: no Amazon links, so no disclosure — point to the episode page instead.
+  if (platforms) push(`📘 Book links and full show notes: ${pageOrPlaceholder}`, "");
+  else push(`Book links in these notes are Amazon affiliate links. ${AMAZON_DISCLOSURE}`, "");
   push(fixBrand(`${kit.summary} ${kit.guest_name} joins host ${kit.host_name} for this conversation.`), "");
 
   // Discussion list
@@ -109,7 +132,7 @@ export function buildShowNotes(kit: ShowNotesKit): { text: string; missing: stri
   const books = resources.filter((r) => r.type === "book" && r.url);
   if (books.length) {
     push("Recommended Books");
-    books.forEach((b) => push(`${fixBrand(b.label)}: ${withAffiliateTag(b.url)}`));
+    books.forEach((b) => push(`${fixBrand(b.label)}: ${platforms && isAmazonUrl(b.url) ? pageOrPlaceholder : withAffiliateTag(b.url)}`));
     push("");
   }
 
@@ -117,8 +140,11 @@ export function buildShowNotes(kit: ShowNotesKit): { text: string; missing: stri
   push("Resources");
   resources
     .filter((r) => r.type !== "book" && r.url)
-    .forEach((r) => push(`${fixBrand(r.label)}: ${r.url}`));
-  STANDARD_RESOURCES.forEach((r) => push(`${r.label}: ${r.url}`));
+    .forEach((r) => push(`${fixBrand(r.label)}: ${safeUrl(r.url)}`));
+  STANDARD_RESOURCES.forEach((r) =>
+    // The Profit Streams® book link is an Amazon link → on Spotify/Apple use profit-streams.com instead
+    push(`${r.label}: ${platforms && isAmazonUrl(r.url) ? "https://profit-streams.com/" : r.url}`)
+  );
   push("");
 
   resources

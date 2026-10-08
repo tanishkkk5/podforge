@@ -22,8 +22,9 @@ follow-ups and prep briefs for you to approve (decision 0013).
 5. **Drop Riverside's `.srt` export into the Drive drop folder** (decision 0014). Production Assistant notices it.
 6. **Run the Episode Pipeline**: chapters + clip suggestions + a draft guest kit with show notes, in one go
    (brand spelling is fixed automatically; check names with `/tools/transcript-check`).
-7. **Add links & show notes**: open the kit → paste real resource links (never guess) → add guest LinkedIn,
-   Spotify/Apple links, related episode → Save → copy the Show Notes.
+7. **Add links & show notes**: open the kit → paste real resource links (never guess) → add the **episode page on
+   profit-streams.com**, guest LinkedIn, Spotify/Apple links, related episode → Save. Copy the **Website** version
+   for profit-streams.com and the **Spotify / Apple** version (no Amazon links) for the platforms.
 8. **Review and approve** the kit (review standard) → only then send the guest their link.
 9. **Add to the Content Library**: the episode + its 3 clips, with Drive video links. Check the AI's topic tags.
 10. **Friday:** approve and send the guest their kit email ("goes live tomorrow" — no Amazon links).

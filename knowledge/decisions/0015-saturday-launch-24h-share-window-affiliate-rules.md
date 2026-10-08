@@ -31,6 +31,12 @@ where affiliate links may appear.
 8. Calls to action are plain ("📘 Get the book") — no rewards, no "buy through our link to support us", and never
    ask guests or colleagues to buy through AF's link.
 9. If a guest hasn't posted **24 hours after launch**, a friendly reminder is drafted (was: 7 days after the email).
+10. **Where Amazon links live** (confirmed Oct 2026: registered sites are **profit-streams.com** and **AF's LinkedIn**):
+    - each episode's **page on profit-streams.com** carries the tagged book links + disclosure ("Website" show notes);
+    - **Spotify and Apple descriptions are not registered** → their show notes ("Spotify / Apple" version) contain
+      **no Amazon links**; every book points to the episode page instead;
+    - **guests' posts link to the episode page** first (then Spotify/Apple if no page yet) — so guest traffic lands
+      where the affiliate links are.
 
 **Alternatives:** ask guests to post the affiliate link directly (rejected — likely breaks the Associates rules);
 Sunday launches (0006).
@@ -38,7 +44,6 @@ Sunday launches (0006).
 **Rationale:** concentrate reach in the launch window while keeping the Associates account safe.
 
 **Consequences:** the guest kit email is sent on Fridays; marking an episode **Published** records the launch time
-that starts the 24h window. **To confirm with the Associates account owner (Luke/Laura):** that guests sharing the
-episode link (not the affiliate link) is the approach they want, and whether to register Instagram.
+that starts the 24h window. Registering Instagram (and Spotify/Apple, if Amazon allows) would let those carry book links — a later decision.
 
 **Status:** accepted
