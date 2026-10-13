@@ -70,3 +70,49 @@ export function episodeFolderName(host: string, guest: string, episodeNumber?: s
   const ep = (episodeNumber || "").trim();
   return `${ep ? `Ep-${ep.replace(/^ep-?/i, "")} ` : ""}Profit Streams Podcast (${host} & ${guest})`;
 }
+
+/** Folder id from a Drive folder link (or a bare id). */
+export function folderIdFromLink(link: string): string | null {
+  const s = (link || "").trim();
+  const m = s.match(/\/folders\/([A-Za-z0-9_-]{10,})/) || s.match(/^([A-Za-z0-9_-]{20,})$/);
+  return m ? m[1] : null;
+}
+
+/** Finds a subfolder by exact name, creating it if missing. */
+export async function findOrCreateFolder(name: string, parentId: string): Promise<{ id: string; url: string }> {
+  const drive = driveClient();
+  const safe = name.replace(/'/g, "\\'");
+  const found = await drive.files.list({
+    q: `'${parentId}' in parents and name = '${safe}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    fields: "files(id, webViewLink)", supportsAllDrives: true, includeItemsFromAllDrives: true,
+  });
+  const hit = found.data.files?.[0];
+  if (hit?.id) return { id: hit.id, url: hit.webViewLink || `https://drive.google.com/drive/folders/${hit.id}` };
+  const made = await drive.files.create({
+    requestBody: { name, mimeType: "application/vnd.google-apps.folder", parents: [parentId] },
+    fields: "id, webViewLink", supportsAllDrives: true,
+  });
+  return { id: made.data.id!, url: made.data.webViewLink || `https://drive.google.com/drive/folders/${made.data.id}` };
+}
+
+/** Uploads (or replaces, if a file with the same name exists) an image into a folder. */
+export async function upsertImage(name: string, data: Buffer, parentId: string, mimeType = "image/png"): Promise<"created" | "updated"> {
+  const { Readable } = await import("stream");
+  const drive = driveClient();
+  const safe = name.replace(/'/g, "\\'");
+  const existing = await drive.files.list({
+    q: `'${parentId}' in parents and name = '${safe}' and trashed = false`,
+    fields: "files(id)", supportsAllDrives: true, includeItemsFromAllDrives: true,
+  });
+  const id = existing.data.files?.[0]?.id;
+  if (id) {
+    await drive.files.update({ fileId: id, media: { mimeType, body: Readable.from(data) }, supportsAllDrives: true });
+    return "updated";
+  }
+  await drive.files.create({
+    requestBody: { name, parents: [parentId] },
+    media: { mimeType, body: Readable.from(data) },
+    fields: "id", supportsAllDrives: true,
+  });
+  return "created";
+}

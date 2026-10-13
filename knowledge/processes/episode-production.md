@@ -3,7 +3,7 @@ title: Episode production — from booking to promotion
 type: process
 owner: tanisk-pandey
 status: accepted
-updated: 2026-10-07
+updated: 2026-10-13
 related: guest-scheduling, show-notes-lenny-format, review-standard, 0006-sunday-publishing
 ---
 
@@ -22,6 +22,9 @@ follow-ups and prep briefs for you to approve (decision 0013).
 5. **Drop Riverside's `.srt` export into the Drive drop folder** (decision 0014). Production Assistant notices it.
 6. **Run the Episode Pipeline**: chapters + clip suggestions + a draft guest kit with show notes, in one go
    (brand spelling is fixed automatically; check names with `/tools/transcript-check`).
+6b. **Save the posters to Drive**: in the kit, paste the episode's Drive folder link (field "Episode folder in Google
+    Drive") and click **📁 Save images to Google Drive** — every poster lands in a "Promotion Images" subfolder.
+    (The Drive folder must be shared with the Podforge service account.)
 7. **Add links & show notes**: open the kit → paste real resource links (never guess) → add the **episode page on
    profit-streams.com**, guest LinkedIn, Spotify/Apple links, related episode → Save. Copy the **Website** version
    for profit-streams.com and the **Spotify / Apple** version (no Amazon links) for the platforms.

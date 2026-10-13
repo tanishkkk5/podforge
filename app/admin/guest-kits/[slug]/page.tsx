@@ -16,6 +16,7 @@ const REVIEW_CHECKS = [
 ];
 
 const EXTRA_FIELDS: { key: keyof KitExtras; label: string; hint?: string; multiline?: boolean }[] = [
+  { key: "driveFolder", label: "Episode folder in Google Drive (paste the folder link)", hint: "Where \"Save images to Google Drive\" puts the posters (in a Promotion Images subfolder). Leave empty to use or create the standard episode folder." },
   { key: "episodePageUrl", label: "Episode page on profit-streams.com", hint: "Guests' posts link here, and the Spotify/Apple show notes send book clicks here — it's AF's registered Amazon Associates site." },
   { key: "guestLinkedin", label: "Guest LinkedIn URL" },
   { key: "guestOtherLinks", label: "Other guest links", hint: 'One per line, e.g. "Website: https://..."', multiline: true },
@@ -34,6 +35,22 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [variant, setVariant] = useState<ShowNotesVariant>("website");
+  const [driveMsg, setDriveMsg] = useState<string | null>(null);
+  const [driveBusy, setDriveBusy] = useState(false);
+  async function saveToDrive() {
+    setDriveBusy(true); setDriveMsg("Saving images to Google Drive…");
+    try {
+      // save the folder link first, in case it was just pasted
+      await fetch(`/api/guestkit/${params.slug}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resources, extras }) });
+      const res = await fetch(`/api/guestkit/${params.slug}/drive`, { method: "POST" });
+      const b = await res.json();
+      if (!res.ok) throw new Error(b.error || "Failed.");
+      setExtras((x) => ({ ...x, driveImagesFolder: b.folderUrl }));
+      setDriveMsg(`✅ ${b.created + b.updated} images saved${b.failed?.length ? ` (${b.failed.length} failed: ${b.failed.join(", ")})` : ""}.`);
+    } catch (e: any) {
+      setDriveMsg(`❌ ${e.message}`);
+    } finally { setDriveBusy(false); }
+  }
   const [reviewer, setReviewer] = useState("Tanisk Pandey");
   const [checks, setChecks] = useState<boolean[]>(REVIEW_CHECKS.map(() => false));
   const [reviewing, setReviewing] = useState(false);
@@ -196,6 +213,13 @@ export default function GuestKitEditorPage({ params }: { params: { slug: string 
                 The guest&apos;s link shows &quot;being prepared&quot; until this kit is approved. AI drafted it —
                 a person checks it before the guest sees it.{" "}
                 <a href={`/guestkit/${kit.slug}`} target="_blank" rel="noreferrer">Preview the guest page ↗</a>
+                {" · "}
+                <button type="button" onClick={saveToDrive} disabled={driveBusy}
+                  style={{ background: "#F0F3F6", color: "var(--af-navy)", fontSize: 13, padding: "5px 12px" }}>
+                  {driveBusy ? "Saving…" : "📁 Save images to Google Drive"}
+                </button>
+                {extras.driveImagesFolder && <>{" · "}<a href={extras.driveImagesFolder} target="_blank" rel="noreferrer">Open images folder ↗</a></>}
+                {driveMsg && <span style={{ marginLeft: 8, fontSize: 13 }}>{driveMsg}</span>}
               </p>
               {REVIEW_CHECKS.map((c, i) => (
                 <label key={c} style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 400, fontSize: 14, margin: "6px 0" }}>

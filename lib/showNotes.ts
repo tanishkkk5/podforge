@@ -50,6 +50,8 @@ export interface KitExtras {
   appleUrl?: string;
   relatedEpisode?: string; // e.g. "Ep-48: ... with Garrick van Buren — https://..."
   episodePageUrl?: string; // this episode's page on profit-streams.com (registered with Amazon Associates)
+  driveFolder?: string; // the episode's folder in Google Drive (images are saved here)
+  driveImagesFolder?: string; // set automatically after "Save images to Google Drive"
 }
 
 /**
