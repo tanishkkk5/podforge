@@ -3,7 +3,7 @@ title: Scheduling a recording
 type: process
 owner: tanisk-pandey
 status: accepted
-updated: 2026-10-07
+updated: 2026-10-13
 related: episode-production, 0008-record-on-riverside, 0012-guests-book-on-host-calendar-after-intake
 ---
 
@@ -22,5 +22,14 @@ related: episode-production, 0008-record-on-riverside, 0012-guests-book-on-host-
 then book on the guest's link. Don't email back and forth proposing times — it puts extra work on the guest
 (Luke's explicit feedback).
 
-**Pre-scheduled sessions:** use **Schedule Guest** (`/admin`) when a time is already agreed; the guest gets a
-`?token=` link and skips the calendar step.
+**Pre-scheduled guests** (time already agreed, e.g. Luke booked it directly):
+1. Podforge → **Schedule Guest** (`/admin`): guest name + email, host, date & time, and **the time zone you mean**
+   (default US Pacific). Check the preview line — it shows the time in Pacific, Eastern and IST.
+2. Optional: paste the Riverside studio link. Click **Create Session Link**.
+3. **Copy email** (or **Copy link**) and send it to the guest yourself. The guest's page shows the time in *their*
+   time zone and leads to the intake form — with no calendar step, so they can't double-book.
+4. Their answers (bio, headshot, links, books) appear under **New Submissions → Scheduled guests** once they fill it in.
+5. Add the Riverside link to the calendar invite, and update the production tracker.
+
+Time zones matter: before Oct 2026 the time was saved without a time zone and stored as UTC (11:30 showed as
+5:00 PM IST). The page now converts using the chosen zone, and the server rejects times without one.

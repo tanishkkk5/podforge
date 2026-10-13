@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { HOSTS as SCHEDULER_HOSTS, hostByKey } from "@/lib/hosts";
+import { TIMEZONES, DEFAULT_TZ, zonedLocalToUtcISO, formatInZone } from "@/lib/timezone";
 
 const HOSTS = ["Luke Hohmann", "Jason Tanner", "Tanisk Pandey", "Other"];
 
@@ -151,6 +152,10 @@ export default function SubmissionsPage() {
   const [hostName, setHostName] = useState(HOSTS[0]);
   const [scheduledAt, setScheduledAt] = useState("");
   const [links, setLinks] = useState<Record<string, string>>({});
+  const [tz, setTz] = useState<string>(DEFAULT_TZ);
+  const [scheduled, setScheduled] = useState<{ session: any; intake: Submission | null }[]>([]);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const copy = (key: string, text: string) => { navigator.clipboard.writeText(text); setCopiedKey(key); setTimeout(() => setCopiedKey(null), 1500); };
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [linkHost, setLinkHost] = useState(SCHEDULER_HOSTS[0].key);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -170,6 +175,7 @@ export default function SubmissionsPage() {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Something went wrong.");
       setSubmissions(body.submissions);
+      setScheduled(body.scheduled || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -179,6 +185,7 @@ export default function SubmissionsPage() {
 
   async function handleSchedule(submission: Submission) {
     try {
+      const iso = zonedLocalToUtcISO(scheduledAt, tz); // the time zone matters (see lib/timezone.ts)
       const res = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -186,7 +193,7 @@ export default function SubmissionsPage() {
           guestName: submission.full_name,
           guestEmail: submission.email,
           hostName,
-          scheduledAt,
+          scheduledAt: iso,
           intakeId: submission.id,
         }),
       });
@@ -206,8 +213,8 @@ export default function SubmissionsPage() {
           <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
           <h1>New Submissions</h1>
           <p>
-            Guests who filled out the intake form directly, without a
-            pre-scheduled session. Schedule a recording time for any of them below.
+            New intake forms waiting to be scheduled, plus every scheduled guest and their answers
+            (bio, headshot, links) further down.
           </p>
         </div>
       </header>
@@ -273,8 +280,9 @@ export default function SubmissionsPage() {
                   {open[s.id] && <FullResponse s={s} />}
 
                   {links[s.id] ? (
-                    <div style={{ fontSize: 13.5, wordBreak: "break-all", color: "var(--af-teal)" }}>
-                      {links[s.id]}
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <input type="text" readOnly value={links[s.id]} onFocus={(e) => e.target.select()} style={{ flex: 1, minWidth: 240, fontSize: 13 }} />
+                      <button type="button" onClick={() => copy(s.id, links[s.id])}>{copiedKey === s.id ? "Copied!" : "Copy link"}</button>
                     </div>
                   ) : scheduling === s.id ? (
                     <div>
@@ -299,6 +307,18 @@ export default function SubmissionsPage() {
                           />
                         </div>
                       </div>
+                      <div className="field" style={{ marginTop: -4 }}>
+                        <label>…in this time zone</label>
+                        <select value={tz} onChange={(e) => setTz(e.target.value)} style={{ width: "100%", padding: "10px", border: "1px solid var(--line)", borderRadius: 6 }}>
+                          {TIMEZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
+                        </select>
+                      </div>
+                      {scheduledAt && (() => {
+                        try {
+                          const iso = zonedLocalToUtcISO(scheduledAt, tz);
+                          return <p style={{ fontSize: 13.5, margin: "0 0 10px" }}>✅ {formatInZone(iso, "America/Los_Angeles")} · {formatInZone(iso, "Asia/Kolkata")}</p>;
+                        } catch { return null; }
+                      })()}
                       <button type="button" onClick={() => handleSchedule(s)}>Confirm Schedule</button>
                     </div>
                   ) : (
@@ -307,6 +327,48 @@ export default function SubmissionsPage() {
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {scheduled.length > 0 && (
+          <div className="section">
+            <h2 style={{ marginTop: 0 }}>Scheduled guests</h2>
+            <p className="hint" style={{ marginTop: 0 }}>
+              Recordings created with Schedule Guest. Their form answers (bio, headshot, links) appear here once they fill it in.
+            </p>
+            {scheduled.map(({ session, intake }) => (
+              <div key={session.id} style={{ borderTop: "1px solid var(--line)", padding: "14px 0" }}>
+                <p style={{ margin: "0 0 4px", fontWeight: 700 }}>
+                  {session.guest_name || session.guest_email}
+                  <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}> · with {session.host_name}</span>
+                </p>
+                <p style={{ margin: "0 0 8px", fontSize: 13.5 }}>
+                  🎙 {formatInZone(session.scheduled_at, "America/Los_Angeles")} · {formatInZone(session.scheduled_at, "Asia/Kolkata")}
+                </p>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 8 }}>
+                  <input type="text" readOnly value={session.link} onFocus={(e) => e.target.select()} style={{ flex: 1, minWidth: 240, fontSize: 13 }} />
+                  <button type="button" onClick={() => copy(session.id, session.link)}>{copiedKey === session.id ? "Copied!" : "Copy link"}</button>
+                </div>
+                {intake ? (
+                  <>
+                    <span style={{ background: "#ECFDF3", color: "#0E8A50", fontWeight: 700, padding: "3px 10px", borderRadius: 999, fontSize: 13 }}>
+                      ✅ Form filled in {formatDate(intake.created_at)}
+                    </span>
+                    <div style={{ marginTop: 10 }}>
+                      <button type="button" onClick={() => setOpen((o) => ({ ...o, [session.id]: !o[session.id] }))}
+                        style={{ background: "#F0F3F6", color: "var(--af-navy)", fontSize: 13, padding: "6px 14px", marginBottom: 12 }}>
+                        {open[session.id] ? "Hide full response ▲" : "View full response ▼"}
+                      </button>
+                      {open[session.id] && <FullResponse s={intake} />}
+                    </div>
+                  </>
+                ) : (
+                  <span style={{ background: "#FFF4E5", color: "#B54708", fontWeight: 700, padding: "3px 10px", borderRadius: 999, fontSize: 13 }}>
+                    Waiting for the guest to fill in the form
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         )}
 

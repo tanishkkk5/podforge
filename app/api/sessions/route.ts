@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { randomBytes } from "crypto";
+import { hasTimeZone } from "@/lib/timezone";
 
 export const runtime = "nodejs";
 
@@ -14,6 +15,14 @@ export async function POST(req: NextRequest) {
     if (!guestEmail || !hostName || !scheduledAt) {
       return NextResponse.json(
         { error: "Guest email, host, and scheduled time are required." },
+        { status: 400 }
+      );
+    }
+
+    // A time without a time zone gets stored as UTC — the bug that turned 11:30 into 5:00 PM IST.
+    if (!hasTimeZone(String(scheduledAt)) || isNaN(Date.parse(scheduledAt))) {
+      return NextResponse.json(
+        { error: "The recording time is missing its time zone. Refresh the page and try again." },
         { status: 400 }
       );
     }

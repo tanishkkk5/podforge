@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { TIMEZONES, DEFAULT_TZ, zonedLocalToUtcISO, formatInZone, longInZone } from "@/lib/timezone";
 
 const HOSTS = ["Luke Hohmann", "Jason Tanner", "Tanisk Pandey", "Other"];
 
@@ -10,6 +11,10 @@ export default function AdminPage() {
   const [guestEmail, setGuestEmail] = useState("");
   const [hostName, setHostName] = useState(HOSTS[0]);
   const [scheduledAt, setScheduledAt] = useState("");
+  const [tz, setTz] = useState<string>(DEFAULT_TZ);
+  const [riverside, setRiverside] = useState("");
+  const [savedISO, setSavedISO] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -21,6 +26,8 @@ export default function AdminPage() {
     setLink(null);
 
     try {
+      // Convert "the time I typed, in the time zone I picked" into an exact moment
+      const iso = zonedLocalToUtcISO(scheduledAt, tz);
       const res = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -29,12 +36,13 @@ export default function AdminPage() {
           guestName,
           guestEmail,
           hostName,
-          scheduledAt,
+          scheduledAt: iso,
         }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Something went wrong.");
       setLink(body.link);
+      setSavedISO(iso);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -112,21 +120,40 @@ export default function AdminPage() {
             </select>
           </div>
 
+          <div className="row2">
+            <div className="field">
+              <label>Recording date &amp; time</label>
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                required
+                style={{ width: "100%", padding: "12px 14px", border: "1px solid var(--line)", borderRadius: 6, fontSize: 15.5 }}
+              />
+            </div>
+            <div className="field">
+              <label>…in this time zone</label>
+              <select value={tz} onChange={(e) => setTz(e.target.value)}
+                style={{ width: "100%", padding: "12px 14px", border: "1px solid var(--line)", borderRadius: 6, fontSize: 15.5 }}>
+                {TIMEZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
+              </select>
+            </div>
+          </div>
+          {scheduledAt && (() => {
+            try {
+              const iso = zonedLocalToUtcISO(scheduledAt, tz);
+              return (
+                <p style={{ margin: "-6px 0 14px", fontSize: 14, background: "#F0F7FF", padding: "8px 12px", borderRadius: 6 }}>
+                  ✅ That&apos;s <strong>{formatInZone(iso, "America/Los_Angeles")}</strong> · {formatInZone(iso, "America/New_York")} ·{" "}
+                  <strong>{formatInZone(iso, "Asia/Kolkata")}</strong>
+                </p>
+              );
+            } catch { return null; }
+          })()}
+
           <div className="field">
-            <label>Proposed recording date & time</label>
-            <input
-              type="datetime-local"
-              value={scheduledAt}
-              onChange={(e) => setScheduledAt(e.target.value)}
-              required
-              style={{
-                width: "100%",
-                padding: "12px 14px",
-                border: "1px solid var(--line)",
-                borderRadius: 6,
-                fontSize: 15.5,
-              }}
-            />
+            <label>Riverside studio link (optional, goes into the email to the guest)</label>
+            <input type="url" value={riverside} onChange={(e) => setRiverside(e.target.value)} placeholder="https://riverside.com/studio/…" />
           </div>
         </div>
 
@@ -139,20 +166,48 @@ export default function AdminPage() {
 
       {link && (
         <div className="section" style={{ borderTop: "2px solid var(--af-teal)" }}>
-          <h2>Send this link to the guest</h2>
-          <div
-            style={{
-              background: "var(--card)",
-              border: "1px solid var(--line)",
-              borderRadius: 6,
-              padding: 16,
-              wordBreak: "break-all",
-              fontFamily: "monospace",
-              fontSize: 14,
-            }}
-          >
-            {link}
+          <h2>✅ Session created — send this to the guest</h2>
+          {savedISO && (
+            <p style={{ fontSize: 14, marginTop: 0 }}>
+              Recording: <strong>{formatInZone(savedISO, tz)}</strong> ({formatInZone(savedISO, "Asia/Kolkata")}). The guest sees it in their own time zone.
+            </p>
+          )}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <input type="text" readOnly value={link} onFocus={(e) => e.target.select()}
+              style={{ flex: 1, minWidth: 260, fontFamily: "monospace", fontSize: 13.5 }} />
+            <button type="button" onClick={() => { navigator.clipboard.writeText(link); setCopied("link"); setTimeout(() => setCopied(null), 1500); }}>
+              {copied === "link" ? "Copied!" : "Copy link"}
+            </button>
+            <a href={link} target="_blank" rel="noreferrer"><button type="button" style={{ background: "#F0F3F6", color: "var(--af-navy)" }}>Open ↗</button></a>
           </div>
+          {(() => {
+            const first = (guestName || "").trim().split(/\s+/)[0] || "there";
+            const when = savedISO ? longInZone(savedISO, tz) : "";
+            const email = [
+              `Hi ${first},`,
+              ``,
+              `Looking forward to your conversation with ${hostName} on ${when}.`,
+              ``,
+              `To help us prepare your show notes and promotion, could you fill in this short form (about 5 minutes) with your bio, headshot and links?`,
+              link,
+              ``,
+              riverside.trim() ? `We'll record on Riverside: ${riverside.trim()}` : `We'll record on Riverside — the studio link is in the calendar invite.`,
+              `A quiet room, headphones and a stable connection work best.`,
+              ``,
+              `Thanks!`,
+              createdBy.trim() || "Tanisk",
+            ].join("\n");
+            return (
+              <>
+                <p style={{ fontWeight: 700, margin: "18px 0 6px" }}>Email to the guest (copy, paste, send)</p>
+                <textarea readOnly value={email} style={{ minHeight: 230, fontSize: 13.5 }} />
+                <button type="button" style={{ marginTop: 8 }}
+                  onClick={() => { navigator.clipboard.writeText(email); setCopied("email"); setTimeout(() => setCopied(null), 1500); }}>
+                  {copied === "email" ? "Copied!" : "Copy email"}
+                </button>
+              </>
+            );
+          })()}
         </div>
       )}
 
