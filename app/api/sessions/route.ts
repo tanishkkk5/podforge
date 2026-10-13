@@ -9,6 +9,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { guestName, guestEmail, hostName, scheduledAt, createdBy, intakeId } = body;
+    // Optional Riverside studio link — only real https links are kept
+    const riverside = typeof body.riverside === "string" && /^https:\/\/\S+$/i.test(body.riverside.trim()) ? body.riverside.trim() : null;
     // Auth is now handled centrally by middleware.ts (session cookie),
     // not a per-request password field.
 
@@ -30,18 +32,21 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseAdmin();
     const token = randomBytes(12).toString("hex");
 
-    const { data, error } = await supabase
-      .from("recording_sessions")
-      .insert({
-        token,
-        guest_name: guestName || null,
-        guest_email: guestEmail,
-        host_name: hostName,
-        scheduled_at: scheduledAt,
-        created_by: createdBy || null,
-      })
-      .select()
-      .single();
+    const row: Record<string, any> = {
+      token,
+      guest_name: guestName || null,
+      guest_email: guestEmail,
+      host_name: hostName,
+      scheduled_at: scheduledAt,
+      created_by: createdBy || null,
+    };
+    if (riverside) row.riverside_url = riverside;
+    let { data, error } = await supabase.from("recording_sessions").insert(row).select().single();
+    // If the riverside_url column hasn't been added yet (migration v16), still create the session
+    if (error && riverside && /riverside_url/i.test(error.message)) {
+      delete row.riverside_url;
+      ({ data, error } = await supabase.from("recording_sessions").insert(row).select().single());
+    }
 
     if (error) {
       console.error("Session creation failed:", error.message);

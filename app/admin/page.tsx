@@ -37,6 +37,7 @@ export default function AdminPage() {
           guestEmail,
           hostName,
           scheduledAt: iso,
+          riverside,
         }),
       });
       const body = await res.json();

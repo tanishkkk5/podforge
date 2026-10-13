@@ -31,7 +31,7 @@ function IntakeForm() {
   const host = hostByKey(searchParams.get("host"));
   const [guest, setGuest] = useState<{ fullName: string; email: string; id: string | null }>({ fullName: "", email: "", id: null });
 
-  const [sessionInfo, setSessionInfo] = useState<{ host_name: string; scheduled_at: string } | null>(null);
+  const [sessionInfo, setSessionInfo] = useState<{ host_name: string; scheduled_at: string; riverside_url?: string | null } | null>(null);
   const [submitted, setSubmitted] = useState(false);
   // Logged-in team members get extra info; guests never see it.
   const [isTeam, setIsTeam] = useState(false);
@@ -201,8 +201,19 @@ function IntakeForm() {
                 day: "numeric",
                 hour: "numeric",
                 minute: "2-digit",
+                timeZoneName: "short",
               })}
             </strong>
+            {sessionInfo.riverside_url && /^https:\/\//i.test(sessionInfo.riverside_url) && (
+              <>
+                <br />
+                🎙 We&apos;ll record on Riverside:{" "}
+                <a href={sessionInfo.riverside_url} target="_blank" rel="noreferrer" style={{ color: "#fff", fontWeight: 700, textDecoration: "underline" }}>
+                  open the recording studio
+                </a>{" "}
+                <span style={{ opacity: 0.85 }}>(Chrome or Edge on a desktop; headphones help)</span>
+              </>
+            )}
           </p>
         )}
         </div>

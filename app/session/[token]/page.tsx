@@ -108,6 +108,13 @@ export default function SessionPage({ params }: { params: { token: string } }) {
             Date & time
           </p>
           <p style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>{formattedDate}</p>
+          {(session as any).riverside_url && /^https:\/\//i.test((session as any).riverside_url) && (
+            <p style={{ margin: "10px 0 0", fontSize: 15 }}>
+              🎙 We&apos;ll record on Riverside:{" "}
+              <a href={(session as any).riverside_url} target="_blank" rel="noreferrer">open the recording studio</a>
+              {" "}(Chrome or Edge on a desktop; headphones help)
+            </p>
+          )}
         </div>
 
         {session.status === "reschedule_requested" && !rescheduleSent && (
