@@ -22,13 +22,16 @@ export default async function GuestKitPage({ params }: { params: { slug: string 
     );
   }
 
+  // The transcript stays on the server (it's big and the guest page doesn't need it)
+  delete (data as any).transcript;
+
   // Only approved kits are visible to guests; the team can preview drafts.
   if (data.status !== "approved") {
     if (!(await viewerIsAdmin())) return <BeingPrepared what="guest kit" />;
     return (
       <>
         <PreviewBanner editHref={`/admin/guest-kits/${data.slug}`} />
-        <GuestKitClient kit={data} />
+        <GuestKitClient kit={data} editable />
       </>
     );
   }

@@ -23,8 +23,8 @@ related: show-notes-lenny-format, 0015-saturday-launch-24h-share-window-affiliat
    we earn from qualifying purchases."
 7. **Amazon affiliate links only on AF's registered sites: profit-streams.com (each episode's page) and AF's
    LinkedIn page.** **Never** in Spotify/Apple descriptions (use the "Spotify / Apple" show notes version — books
-   point to the episode page), **never** on Instagram, **never** in emails to guests, **never** in guest captions
-   (guests link to the episode page). Short links (a.co, amzn.to) count as Amazon links.
+   point to the episode page), **never** on Instagram, **never** in emails to guests, guest captions only while the per-kit
+   switch in the Episode Studio is on (decision 0016, proposed, needs Luke/Kevin sign-off), always with the #ad line. Short links (a.co, amzn.to) count as Amazon links.
 8. Plain calls to action only ("📘 Get the book") — no rewards or "support us" asks; never ask guests or colleagues
    to buy through AF's link.
 

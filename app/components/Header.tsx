@@ -28,6 +28,8 @@ export default function Header() {
       <div className="af-nav-group">
         <p className="af-nav-group-label">Production</p>
         <nav className="af-nav">
+          <a href="/admin/production">🎬 Episode Studio</a>
+          <a href="/admin/guest-kits">Episodes &amp; Guest Kits</a>
           <a href="/admin/assistant">✨ Production Assistant</a>
           <a href="/admin/pipeline">Episode Pipeline</a>
           <a href="/admin/stats">Weekly Stats</a>
@@ -41,10 +43,8 @@ export default function Header() {
       </div>
 
       <div className="af-nav-group">
-        <p className="af-nav-group-label">Guest Kit</p>
+        <p className="af-nav-group-label">Content</p>
         <nav className="af-nav">
-          <a href="/admin/guest-kit-generator">Guest Kit Generator</a>
-          <a href="/admin/guest-kits">Guest Kits &amp; Show Notes</a>
           <a href="/admin/clip-finder">Clip Finder</a>
           <a href="/admin/library">Content Library</a>
           <a href="/admin/creators">Creator Kits</a>

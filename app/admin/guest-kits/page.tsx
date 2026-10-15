@@ -51,7 +51,7 @@ export default function GuestKitsListPage() {
         {!kits && !error && <p className="hint">Loading…</p>}
         {kits && kits.length === 0 && (
           <p className="hint">
-            No kits yet. Make one in the <a href="/admin/guest-kit-generator">Guest Kit Generator</a>.
+            No kits yet. Start one in the <a href="/admin/production">Episode Studio</a>.
           </p>
         )}
 

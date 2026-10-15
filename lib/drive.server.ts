@@ -116,3 +116,37 @@ export async function upsertImage(name: string, data: Buffer, parentId: string, 
   });
   return "created";
 }
+
+/** Uploads (or replaces) a text file; asDoc=true stores it as a Google Doc. */
+export async function upsertText(name: string, text: string, parentId: string, asDoc = false): Promise<{ id: string; url: string }> {
+  const { Readable } = await import("stream");
+  const drive = driveClient();
+  const safe = name.replace(/'/g, "\\'");
+  const existing = await drive.files.list({
+    q: `'${parentId}' in parents and name = '${safe}' and trashed = false`,
+    fields: "files(id, webViewLink)", supportsAllDrives: true, includeItemsFromAllDrives: true,
+  });
+  const hit = existing.data.files?.[0];
+  const media = { mimeType: "text/plain", body: Readable.from(Buffer.from(text, "utf8")) };
+  if (hit?.id) {
+    await drive.files.update({ fileId: hit.id, media, supportsAllDrives: true });
+    return { id: hit.id, url: hit.webViewLink || `https://drive.google.com/file/d/${hit.id}/view` };
+  }
+  const made = await drive.files.create({
+    requestBody: { name, parents: [parentId], ...(asDoc ? { mimeType: "application/vnd.google-apps.document" } : {}) },
+    media, fields: "id, webViewLink", supportsAllDrives: true,
+  });
+  return { id: made.data.id!, url: made.data.webViewLink || `https://drive.google.com/file/d/${made.data.id}/view` };
+}
+
+/** "Anyone with the link can view". Returns false if the organisation blocks link sharing. */
+export async function shareAnyoneCanView(fileId: string): Promise<boolean> {
+  try {
+    await driveClient().permissions.create({
+      fileId, requestBody: { type: "anyone", role: "reader" }, supportsAllDrives: true,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}

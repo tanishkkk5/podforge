@@ -52,6 +52,13 @@ export interface KitExtras {
   episodePageUrl?: string; // this episode's page on profit-streams.com (registered with Amazon Associates)
   driveFolder?: string; // the episode's folder in Google Drive (images are saved here)
   driveImagesFolder?: string; // set automatically after "Save images to Google Drive"
+  lukePostUrl?: string; // Luke's LinkedIn post for this episode (guests reshare it)
+  afPostUrl?: string; // AF company page post
+  guestBundleUrl?: string; // set by "Build guest Drive folder"
+  bundlePostsUrl?: string;
+  bundleClipsUrl?: string;
+  bundleThumbUrl?: string;
+  bundleAudioUrl?: string;
 }
 
 /**
@@ -117,7 +124,7 @@ export function buildShowNotes(kit: ShowNotesKit, variant: ShowNotesVariant = "w
   const push = (...l: string[]) => lines.push(...l);
 
   // Title + hook + summary
-  push(fixBrand(`Ep-${ep} ${kit.title} — with ${kit.guest_name}`), "");
+  push(fixBrand(`Ep-${ep} ${kit.title}, with ${kit.guest_name}`), "");
   push(fixBrand(kit.hook), "");
   // Website: disclosure BEFORE any links (the standard Profit Streams® book link is always an Amazon link).
   // Platforms: no Amazon links, so no disclosure — point to the episode page instead.

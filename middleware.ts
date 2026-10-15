@@ -21,6 +21,7 @@ const PROTECTED_API_PATHS = [
   "/api/drive",
   "/api/pipeline",
   "/api/stats",
+  "/api/production",
 ];
 
 export async function middleware(req: NextRequest) {
@@ -49,5 +50,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/sessions/:path*", "/api/submissions/:path*", "/api/guestkit", "/api/guestkit/:path*", "/api/transcripts/ingest", "/api/library", "/api/library/:path*", "/api/creators", "/api/creators/:path*", "/api/creatorkits", "/api/creatorkits/:path*", "/api/assistant", "/api/assistant/:path*", "/api/episodes", "/api/episodes/:path*", "/api/clips/:path*", "/api/drive/:path*", "/api/pipeline/:path*", "/api/stats"],
+  matcher: ["/admin/:path*", "/api/sessions/:path*", "/api/submissions/:path*", "/api/guestkit", "/api/guestkit/:path*", "/api/transcripts/ingest", "/api/library", "/api/library/:path*", "/api/creators", "/api/creators/:path*", "/api/creatorkits", "/api/creatorkits/:path*", "/api/assistant", "/api/assistant/:path*", "/api/episodes", "/api/episodes/:path*", "/api/clips/:path*", "/api/drive/:path*", "/api/pipeline/:path*", "/api/stats", "/api/production/:path*"],
 };
