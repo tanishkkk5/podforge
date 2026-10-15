@@ -86,7 +86,7 @@ export default function ProductionAssistantPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>✨ Production Assistant</h1>
           <p>
             Tracks every episode from intake to publish, notices what&apos;s next, and drafts it for you.

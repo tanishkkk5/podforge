@@ -43,7 +43,7 @@ export default function TranscriptCheckPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Transcript Checker</h1>
           <p>
             Paste a transcript to catch misspelled names automatically, and

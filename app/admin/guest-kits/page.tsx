@@ -40,9 +40,10 @@ export default function GuestKitsListPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
-          <h1>Guest Kits</h1>
-          <p>Every kit you&apos;ve generated. Open one to add resource links and get its Show Notes.</p>
+          <p className="kicker"></p>
+          <h1>Episodes</h1>
+          <p>Every episode and its guest kit. Open one to edit, get the show notes and approve.</p>
+          <p style={{ marginTop: 14 }}><a href="/admin/production"><button type="button" style={{ background: "#fff", color: "var(--af-navy)" }}>+ New episode</button></a></p>
         </div>
       </header>
 

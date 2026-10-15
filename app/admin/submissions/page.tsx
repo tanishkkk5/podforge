@@ -210,7 +210,7 @@ export default function SubmissionsPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>New Submissions</h1>
           <p>
             New intake forms waiting to be scheduled, plus every scheduled guest and their answers

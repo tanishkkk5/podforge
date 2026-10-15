@@ -50,7 +50,7 @@ export default function AskArchivePage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Ask the Archive</h1>
           <p>
             Search across every past transcript and Magic Clip. This finds

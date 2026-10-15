@@ -173,7 +173,7 @@ export default function CreatorKitsPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Creator Kits</h1>
           <p>Pick a creator, and Podforge picks the clips that match their niche and writes captions in their voice.</p>
         </div>

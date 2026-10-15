@@ -145,7 +145,7 @@ export default function EpisodeStudioStart() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST · INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Episode Studio</h1>
           <p>
             Step 1 of 2. Pick the guest, paste the Riverside transcript and chapters, and Podforge drafts the title,

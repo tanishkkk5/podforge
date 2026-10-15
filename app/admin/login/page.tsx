@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Admin Login</h1>
           <p>Log in once to access every production and guest kit tool.</p>
         </div>

@@ -136,7 +136,7 @@ export default function EpisodePipelinePage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Episode Pipeline</h1>
           <p>One Riverside .srt in → chapters, guest kit, show notes and clip suggestions out. Everything lands as a draft for your review.</p>
         </div>

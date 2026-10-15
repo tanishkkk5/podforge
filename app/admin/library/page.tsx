@@ -227,7 +227,7 @@ export default function ContentLibraryPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Content Library</h1>
           <p>Every episode and clip, auto-tagged by topic. Videos play straight from Google Drive.</p>
         </div>

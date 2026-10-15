@@ -55,7 +55,7 @@ export default function AdminPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-        <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+        <p className="kicker"></p>
         <h1>Schedule a Guest</h1>
         <p>
           Create a recording session and get a unique link to send the guest.

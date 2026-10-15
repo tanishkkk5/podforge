@@ -1,80 +1,57 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import {
-  Clapperboard, Library, Sparkles, Workflow, BarChart3, ClipboardList, CalendarClock, Inbox, SpellCheck,
-  Upload, MessagesSquare, Scissors, BookOpen, Users, LogOut,
-} from "./Icons";
+import { Home, Users, Clapperboard, Library, MessagesSquare, LogOut, ExternalLink } from "./Icons";
+import { NAV, locate } from "@/lib/nav";
 
-const NavLink = ({ href, icon: I, children }: { href: string; icon: any; children: React.ReactNode }) => (
-  <a href={href} style={{ display: "flex", alignItems: "center", gap: 9 }}>
-    <I size={16} strokeWidth={2} aria-hidden />
-    {children}
-  </a>
-);
-
-// Pages a GUEST or outside CREATOR can see. They must never show the
-// internal menu, so the sidebar is hidden there.
+// Pages a GUEST or outside CREATOR can see. They must never show the internal menu.
 const PUBLIC_PREFIXES = ["/guestkit/", "/creatorkit/", "/session/"];
-function isPublicPage(path: string | null) {
+export function isPublicPage(path: string | null) {
   if (!path) return false;
   return path === "/" || PUBLIC_PREFIXES.some((p) => path.startsWith(p));
 }
+
+const ICONS: Record<string, any> = { home: Home, users: Users, clapperboard: Clapperboard, library: Library, messages: MessagesSquare };
 
 async function handleLogout() {
   await fetch("/api/admin/logout", { method: "POST" });
   window.location.href = "/admin/login";
 }
 
+/** Sidebar: the 5 places in Podforge (decision 0018). */
 export default function Header() {
   const pathname = usePathname();
-  if (isPublicPage(pathname)) return null;
+  if (isPublicPage(pathname) || pathname === "/admin/login") return null;
+  const { section } = locate(pathname || "");
   return (
-    <div className="af-sidebar">
-      <div className="af-sidebar-brand">
-        <img src="/af-swoosh-icon.png" alt="Applied Frameworks" className="af-logo" />
-        <span className="af-sidebar-title">PROFIT STREAMS® PODCAST</span>
-      </div>
-
-      <div className="af-nav-group">
-        <p className="af-nav-group-label">Production</p>
-        <nav className="af-nav">
-          <NavLink href="/admin/production" icon={Clapperboard}>Episode Studio</NavLink>
-          <NavLink href="/admin/guest-kits" icon={Library}>Episodes &amp; Guest Kits</NavLink>
-          <NavLink href="/admin/assistant" icon={Sparkles}>Production Assistant</NavLink>
-          <NavLink href="/admin/pipeline" icon={Workflow}>Episode Pipeline</NavLink>
-          <NavLink href="/admin/stats" icon={BarChart3}>Weekly Stats</NavLink>
-          <NavLink href="/" icon={ClipboardList}>Guest Intake</NavLink>
-          <NavLink href="/admin" icon={CalendarClock}>Schedule Guest</NavLink>
-          <NavLink href="/admin/submissions" icon={Inbox}>New Submissions</NavLink>
-          <NavLink href="/tools/transcript-check" icon={SpellCheck}>Transcript Checker</NavLink>
-          <NavLink href="/admin/upload-transcript" icon={Upload}>Upload Transcript</NavLink>
-          <NavLink href="/tools/ask-archive" icon={MessagesSquare}>Ask Archive</NavLink>
-        </nav>
-      </div>
-
-      <div className="af-nav-group">
-        <p className="af-nav-group-label">Content</p>
-        <nav className="af-nav">
-          <NavLink href="/admin/clip-finder" icon={Scissors}>Clip Finder</NavLink>
-          <NavLink href="/admin/library" icon={BookOpen}>Content Library</NavLink>
-          <NavLink href="/admin/creators" icon={Users}>Creator Kits</NavLink>
-        </nav>
-      </div>
-
-      <div className="af-nav-group">
-        <button
-          type="button"
-          onClick={handleLogout}
-          style={{
-            background: "none", border: "none", padding: "8px 10px",
-            fontFamily: "'Inter', sans-serif", fontSize: 13.5, fontWeight: 600,
-            color: "var(--ink-soft)", cursor: "pointer", textAlign: "left",
-          }}
-        >
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 9 }}><LogOut size={16} aria-hidden />Log Out</span>
+    <aside className="af-sidebar">
+      <a href="/admin/assistant" className="af-sidebar-brand">
+        <img src="/af-swoosh-icon.png" alt="" className="af-logo" />
+        <span>
+          <span className="af-sidebar-title">Podforge</span>
+          <span className="af-sidebar-sub">Profit Streams® Podcast</span>
+        </span>
+      </a>
+      <nav className="af-nav" aria-label="Main">
+        {NAV.map((s) => {
+          const I = ICONS[s.icon];
+          const active = section?.key === s.key;
+          return (
+            <a key={s.key} href={s.href} className={active ? "active" : undefined} aria-current={active ? "page" : undefined}>
+              <I size={18} strokeWidth={active ? 2.2 : 1.8} aria-hidden />
+              {s.label}
+            </a>
+          );
+        })}
+      </nav>
+      <div className="af-sidebar-foot">
+        <a href="/" target="_blank" rel="noreferrer" className="af-foot-link">
+          <ExternalLink size={15} aria-hidden /> Guest intake form
+        </a>
+        <button type="button" className="af-foot-link" onClick={handleLogout}>
+          <LogOut size={15} aria-hidden /> Log out
         </button>
       </div>
-    </div>
+    </aside>
   );
 }

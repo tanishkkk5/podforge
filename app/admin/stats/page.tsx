@@ -103,7 +103,7 @@ export default function StatsPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Weekly Stats</h1>
           <p>Spotify and Apple don&apos;t offer an official way to pull these automatically, so copy them in once a week (2 minutes) — Podforge tracks the trends.</p>
         </div>

@@ -90,7 +90,7 @@ export default function ClipFinderPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Clip Finder</h1>
           <p>Upload Riverside&apos;s captions file and get the 5 best moments to cut — with exact times from the file itself.</p>
         </div>

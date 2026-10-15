@@ -8,7 +8,7 @@ export {
   Clapperboard, Library, Sparkles, Workflow, BarChart3, ClipboardList, CalendarClock, Inbox, SpellCheck,
   Upload, MessagesSquare, Scissors, BookOpen, Users, LogOut, Search, FolderOpen, Download, Pencil, RotateCcw,
   Lock, CheckCircle2, AlertTriangle, Copy, Check, Save, Wand2, Image as ImageIcon, Link2, Hash, Database,
-  ExternalLink, ArrowRight, X,
+  ExternalLink, ArrowRight, X, Home,
 } from "lucide-react";
 
 export function BrandIcon({ brand, size = 18, color }: { brand: Brand; size?: number; color?: string }) {

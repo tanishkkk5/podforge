@@ -37,7 +37,7 @@ export default function UploadTranscriptPage() {
     <>
       <header className="hero">
         <div className="hero-inner">
-          <p className="kicker">PROFIT STREAMS® PODCAST — INTERNAL</p>
+          <p className="kicker"></p>
           <h1>Add to the Transcript Archive</h1>
           <p>
             Paste a transcript (main episode or a Magic Clip) to make it

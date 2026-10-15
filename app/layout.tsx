@@ -1,5 +1,6 @@
 import "./globals.css";
 import Header from "./components/Header";
+import SectionTabs from "./components/SectionTabs";
 
 export const metadata = {
   title: "Podforge — Profit Streams® Podcast",
@@ -15,7 +16,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="af-shell">
           <Header />
-          <div className="af-main">{children}</div>
+          <main className="af-main">
+            <SectionTabs />
+            {children}
+          </main>
         </div>
       </body>
     </html>
