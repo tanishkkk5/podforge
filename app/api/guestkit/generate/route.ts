@@ -51,7 +51,9 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. AI draft (free Groq tier)
-    const content = await extractEpisodeContent(transcript, guestName, hostName);
+    // Long episodes arrive with notes from every part (decision 0019), so the whole conversation is used.
+    const digest = get("digest");
+    const content = await extractEpisodeContent(transcript, guestName, hostName, digest || undefined);
     content.title = noDashes(content.title);
     content.hook = noDashes(content.hook);
     content.summary = noDashes(content.summary);
@@ -70,6 +72,7 @@ export async function POST(req: NextRequest) {
     const extras: Record<string, string> = { ...(existing?.extras || {}) };
     if (!extras.guestLinkedin && get("guestLinkedin")) extras.guestLinkedin = get("guestLinkedin");
     if (!extras.guestOtherLinks && get("guestOtherLinks")) extras.guestOtherLinks = get("guestOtherLinks");
+    if (digest) extras.digest = digest.slice(0, 20000); else delete extras.digest;
 
     const { error: insertError } = await supabase
       .from("guest_kits")

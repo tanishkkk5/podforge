@@ -24,6 +24,7 @@ export default async function GuestKitPage({ params }: { params: { slug: string 
 
   // The transcript stays on the server (it's big and the guest page doesn't need it)
   delete (data as any).transcript;
+  if (data.extras) delete data.extras.digest;
 
   // Only approved kits are visible to guests; the team can preview drafts.
   if (data.status !== "approved") {

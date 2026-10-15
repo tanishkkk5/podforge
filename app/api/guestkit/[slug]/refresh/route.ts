@@ -43,13 +43,16 @@ Summary: ${kit.summary}
 Key takeaways:
 ${(kit.takeaways || []).map((t: string, i: number) => `${i + 1}. ${stripMarks(t)}`).join("\n")}`;
     const needsTranscript = ["titles", "takeaways", "quote", "description"].includes(what);
-    if (needsTranscript && !kit.transcript) {
+    if (needsTranscript && !kit.transcript && !kit.extras?.digest) {
       // Kits made before the Studio don't have their transcript stored: work from the summary + takeaways
       if (what === "takeaways" || what === "quote") {
         return NextResponse.json({ error: "This kit was made before transcripts were saved. Re-run Step 1 with the transcript to refresh takeaways or the quote." }, { status: 400 });
       }
     }
-    const transcriptPart = kit.transcript ? `\n\nTranscript (excerpt):\n${excerpt(kit.transcript)}` : "";
+    // Long episodes: use the notes that cover the WHOLE conversation (decision 0019)
+    const digest: string = kit.extras?.digest || "";
+    const source = digest ? `Notes covering the whole conversation (quotes are verbatim):\n${digest.slice(0, 16000)}` : `Transcript (excerpt):\n${excerpt(kit.transcript || "")}`;
+    const transcriptPart = kit.transcript || digest ? `\n\n${source}` : "";
 
     if (what === "titles") {
       const out = await groqJson({
@@ -82,8 +85,7 @@ Respond with JSON only: {"hook": "...", "summary": "..."}`,
     if (what === "takeaways") {
       const out = await groqJson({
         prompt: `Profit Streams® Podcast. Host ${kit.host_name}, guest ${kit.guest_name}.
-Transcript (excerpt):
-${excerpt(kit.transcript)}
+${source}
 
 Write exactly 10 key takeaways, each one complete sentence (under 30 words) with a distinct, concrete idea from the conversation, in the order they come up. In each takeaway, wrap the 2 to 4 most important words in **double asterisks**. ${RULES}
 Respond with JSON only: {"takeaways": ["...", ... 10 items]}`,
@@ -97,8 +99,7 @@ Respond with JSON only: {"takeaways": ["...", ... 10 items]}`,
     if (what === "quote") {
       const out = await groqJson({
         prompt: `Profit Streams® Podcast. Guest: ${kit.guest_name}.
-Transcript (excerpt):
-${excerpt(kit.transcript)}
+${source}
 
 Pick 3 short, self-contained, quotable lines said by the GUEST (not the host). Each must be copied word for word from the transcript (you may trim filler words like "um", "you know") and be under 200 characters. Avoid this one: "${kit.best_quote}".
 Respond with JSON only: {"quotes": ["...", "...", "..."]}`,

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { IconLabel, Search } from "@/app/components/Icons";
+import { readingPlan, PACE_SECONDS } from "@/lib/condense";
 
 interface Guest {
   intakeId: string;
@@ -53,6 +54,7 @@ export default function EpisodeStudioStart() {
   const [checking, setChecking] = useState(false);
   const [checkMsg, setCheckMsg] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -115,12 +117,48 @@ export default function EpisodeStudioStart() {
     setFlags((fl) => (fl || []).filter((x) => x !== f));
   }
 
+  const plan = useMemo(() => readingPlan(transcript), [transcript]);
+
+  /** Waits `sec` seconds, showing a countdown (free Groq limit: 8,000 tokens per minute). */
+  async function waitWithCountdown(sec: number, label: string) {
+    for (let left = sec; left > 0; left--) {
+      setProgress(`${label} Next step in ${left}s.`);
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
+
+  /** Notes for every part of a long transcript, one part per minute, retrying if the free limit is hit. */
+  async function readAllParts(parts: string[]): Promise<string> {
+    const notes: string[] = [];
+    for (let i = 0; i < parts.length; i++) {
+      if (i > 0) await waitWithCountdown(PACE_SECONDS, `Read part ${i} of ${parts.length}.`);
+      for (let attempt = 1; ; attempt++) {
+        setProgress(`Reading part ${i + 1} of ${parts.length} of the transcript…`);
+        const r = await fetch("/api/guestkit/digest", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ part: parts[i], index: i, total: parts.length, guestName, hostName }),
+        });
+        const b = await r.json();
+        if (r.ok) { notes.push(`PART ${i + 1} of ${parts.length}\n${b.notes}`); break; }
+        if (r.status === 429 && attempt < 4) { await waitWithCountdown(PACE_SECONDS, "Free AI limit reached, waiting."); continue; }
+        throw new Error(b.error || `Couldn't read part ${i + 1}.`);
+      }
+    }
+    return notes.join("\n\n");
+  }
+
   async function generate(e: React.FormEvent) {
     e.preventDefault();
-    setGenerating(true); setError(null);
+    setGenerating(true); setError(null); setProgress(null);
     try {
+      let digest = "";
+      if (!plan.singlePass) {
+        digest = await readAllParts(plan.parts);
+        await waitWithCountdown(PACE_SECONDS, `Read all ${plan.parts.length} parts.`);
+      }
       const fd = new FormData();
       fd.append("transcript", transcript);
+      fd.append("digest", digest);
       fd.append("guestName", guestName);
       fd.append("hostName", hostName);
       fd.append("guestTitle", guestTitle);
@@ -131,13 +169,21 @@ export default function EpisodeStudioStart() {
       fd.append("guestLinkedin", guestLinkedin);
       fd.append("guestOtherLinks", guestOtherLinks);
       if (headshot) fd.append("headshot", headshot);
-      const r = await fetch("/api/guestkit/generate", { method: "POST", body: fd });
-      const b = await r.json();
-      if (!r.ok) throw new Error(b.error || "Something went wrong.");
-      window.location.href = `/admin/guest-kits/${b.slug}?new=1${b.content?.truncated ? "&truncated=1" : ""}`;
+      for (let attempt = 1; ; attempt++) {
+        setProgress("Drafting the title, summary, takeaways and images (about 30 to 60 seconds)…");
+        const r = await fetch("/api/guestkit/generate", { method: "POST", body: fd });
+        const b = await r.json();
+        if (r.ok) {
+          window.location.href = `/admin/guest-kits/${b.slug}?new=1${b.content?.truncated ? "&truncated=1" : ""}`;
+          return;
+        }
+        if (/limit/i.test(b.error || "") && attempt < 3) { await waitWithCountdown(PACE_SECONDS, "Free AI limit reached, waiting."); continue; }
+        throw new Error(b.error || "Something went wrong.");
+      }
     } catch (err: any) {
       setError(err.message);
       setGenerating(false);
+      setProgress(null);
     }
   }
 
@@ -252,6 +298,13 @@ export default function EpisodeStudioStart() {
               <label>Transcript <span className="sub">&quot;Profit Streams®&quot; and other safe fixes are applied automatically.</span></label>
               <textarea value={transcript} onChange={(e) => { setTranscript(e.target.value); setFlags(null); }} style={{ minHeight: 280 }} required />
             </div>
+            {transcript.trim() && (
+              <p className="hint" style={{ margin: "-8px 0 14px" }}>
+                {plan.singlePass
+                  ? `${plan.cleaned.length.toLocaleString()} characters after cleanup: read in one go.`
+                  : `Long episode (${plan.cleaned.length.toLocaleString()} characters after cleanup): Podforge reads ALL of it in ${plan.parts.length} parts, about ${plan.minutes} minutes. Keep this tab open.`}
+              </p>
+            )}
             <button type="button" onClick={checkNames} disabled={checking || !transcript.trim()} style={grey}>
               {checking ? "Checking…" : <IconLabel icon={Search}>Check names</IconLabel>}
             </button>
@@ -272,10 +325,11 @@ export default function EpisodeStudioStart() {
 
           <div className="submit-row">
             <button type="submit" disabled={generating}>
-              {generating ? "Drafting everything (about 30 to 60 seconds)…" : "Draft episode + guest kit →"}
+              {generating ? "Working…" : "Draft episode + guest kit →"}
             </button>
+            {progress && <span className="submit-note" aria-live="polite">{progress}</span>}
           </div>
-          <p className="hint" style={{ textAlign: "center" }}>Free AI limit: one draft every 2 minutes.</p>
+          <p className="hint" style={{ textAlign: "center" }}>Uses the free AI: long transcripts are read in parts, one part per minute, so nothing is cut off.</p>
         </form>
         <footer>Applied Frameworks · Profit Streams® Podcast</footer>
       </div>

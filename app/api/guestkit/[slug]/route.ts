@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const EXTRA_KEYS = ["driveFolder", "episodePageUrl", "guestLinkedin", "guestOtherLinks", "hostLinkedin", "spotifyUrl", "appleUrl", "relatedEpisode", "lukePostUrl", "afPostUrl"];
 // Set by the server (Drive bundle / images); kept when the page saves extras
-const SERVER_EXTRA_KEYS = ["driveImagesFolder", "guestBundleUrl", "bundlePostsUrl", "bundleClipsUrl", "bundleThumbUrl", "bundleAudioUrl"];
+const SERVER_EXTRA_KEYS = ["digest", "driveImagesFolder", "guestBundleUrl", "bundlePostsUrl", "bundleClipsUrl", "bundleThumbUrl", "bundleAudioUrl"];
 const POST_KEYS = ["title", "summary", "quote", "takeaways", "chapters"];
 const str = (v: unknown, max = 5000) => String(v ?? "").replace(/\s*[\u2014\u2013]\s*/g, ", ").trim().slice(0, max);
 
