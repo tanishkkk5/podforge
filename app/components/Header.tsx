@@ -1,6 +1,17 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import {
+  Clapperboard, Library, Sparkles, Workflow, BarChart3, ClipboardList, CalendarClock, Inbox, SpellCheck,
+  Upload, MessagesSquare, Scissors, BookOpen, Users, LogOut,
+} from "./Icons";
+
+const NavLink = ({ href, icon: I, children }: { href: string; icon: any; children: React.ReactNode }) => (
+  <a href={href} style={{ display: "flex", alignItems: "center", gap: 9 }}>
+    <I size={16} strokeWidth={2} aria-hidden />
+    {children}
+  </a>
+);
 
 // Pages a GUEST or outside CREATOR can see. They must never show the
 // internal menu, so the sidebar is hidden there.
@@ -28,26 +39,26 @@ export default function Header() {
       <div className="af-nav-group">
         <p className="af-nav-group-label">Production</p>
         <nav className="af-nav">
-          <a href="/admin/production">🎬 Episode Studio</a>
-          <a href="/admin/guest-kits">Episodes &amp; Guest Kits</a>
-          <a href="/admin/assistant">✨ Production Assistant</a>
-          <a href="/admin/pipeline">Episode Pipeline</a>
-          <a href="/admin/stats">Weekly Stats</a>
-          <a href="/">Guest Intake</a>
-          <a href="/admin">Schedule Guest</a>
-          <a href="/admin/submissions">New Submissions</a>
-          <a href="/tools/transcript-check">Transcript Checker</a>
-          <a href="/admin/upload-transcript">Upload Transcript</a>
-          <a href="/tools/ask-archive">Ask Archive</a>
+          <NavLink href="/admin/production" icon={Clapperboard}>Episode Studio</NavLink>
+          <NavLink href="/admin/guest-kits" icon={Library}>Episodes &amp; Guest Kits</NavLink>
+          <NavLink href="/admin/assistant" icon={Sparkles}>Production Assistant</NavLink>
+          <NavLink href="/admin/pipeline" icon={Workflow}>Episode Pipeline</NavLink>
+          <NavLink href="/admin/stats" icon={BarChart3}>Weekly Stats</NavLink>
+          <NavLink href="/" icon={ClipboardList}>Guest Intake</NavLink>
+          <NavLink href="/admin" icon={CalendarClock}>Schedule Guest</NavLink>
+          <NavLink href="/admin/submissions" icon={Inbox}>New Submissions</NavLink>
+          <NavLink href="/tools/transcript-check" icon={SpellCheck}>Transcript Checker</NavLink>
+          <NavLink href="/admin/upload-transcript" icon={Upload}>Upload Transcript</NavLink>
+          <NavLink href="/tools/ask-archive" icon={MessagesSquare}>Ask Archive</NavLink>
         </nav>
       </div>
 
       <div className="af-nav-group">
         <p className="af-nav-group-label">Content</p>
         <nav className="af-nav">
-          <a href="/admin/clip-finder">Clip Finder</a>
-          <a href="/admin/library">Content Library</a>
-          <a href="/admin/creators">Creator Kits</a>
+          <NavLink href="/admin/clip-finder" icon={Scissors}>Clip Finder</NavLink>
+          <NavLink href="/admin/library" icon={BookOpen}>Content Library</NavLink>
+          <NavLink href="/admin/creators" icon={Users}>Creator Kits</NavLink>
         </nav>
       </div>
 
@@ -61,7 +72,7 @@ export default function Header() {
             color: "var(--ink-soft)", cursor: "pointer", textAlign: "left",
           }}
         >
-          Log Out
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 9 }}><LogOut size={16} aria-hidden />Log Out</span>
         </button>
       </div>
     </div>

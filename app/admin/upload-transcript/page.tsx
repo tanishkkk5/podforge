@@ -93,6 +93,7 @@ export default function UploadTranscriptPage() {
                 >
                   <option value="main_transcript">Main Transcript</option>
                   <option value="magic_clip">Magic Clip</option>
+                  <option value="episode_summary">Episode summary (Lenny style)</option>
                 </select>
               </div>
             </div>

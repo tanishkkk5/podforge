@@ -1,3 +1,4 @@
+import { stripMarks } from "./textStyle";
 /**
  * Builds the locked "Lenny Format" Show Notes for one guest kit.
  * Pure function, no API calls — safe to use in the browser and the server.
@@ -108,6 +109,9 @@ export function isShortAmazonLink(url: string): boolean {
   return /^https?:\/\/(www\.)?(a\.co|amzn\.to)\//i.test((url || "").trim());
 }
 
+/** Show notes are plain text: brand fixed, **bold** markers removed (decision 0017). */
+const plain = (t: string) => fixBrand(stripMarks(t));
+
 export function buildShowNotes(kit: ShowNotesKit, variant: ShowNotesVariant = "website"): { text: string; missing: string[] } {
   const missing: string[] = [];
   const extras = kit.extras || {};
@@ -124,24 +128,26 @@ export function buildShowNotes(kit: ShowNotesKit, variant: ShowNotesVariant = "w
   const push = (...l: string[]) => lines.push(...l);
 
   // Title + hook + summary
-  push(fixBrand(`Ep-${ep} ${kit.title}, with ${kit.guest_name}`), "");
-  push(fixBrand(kit.hook), "");
+  push(plain(`Ep-${ep} ${kit.title}, with ${kit.guest_name}`), "");
+  push(plain(kit.hook), "");
   // Website: disclosure BEFORE any links (the standard Profit Streams® book link is always an Amazon link).
   // Platforms: no Amazon links, so no disclosure — point to the episode page instead.
   if (platforms) push(`📘 Book links and full show notes: ${pageOrPlaceholder}`, "");
   else push(`Book links in these notes are Amazon affiliate links. ${AMAZON_DISCLOSURE}`, "");
-  push(fixBrand(`${kit.summary} ${kit.guest_name} joins host ${kit.host_name} for this conversation.`), "");
+  // Lenny-style summaries already end with "[Guest] joins [Host] to ..."
+  const summary = (kit.summary || "").trim();
+  push(plain(/\bjoins\b/i.test(summary) ? summary : `${summary} ${kit.guest_name} joins host ${kit.host_name} for this conversation.`), "");
 
   // Discussion list
   push("In this conversation, we discuss:", "");
-  (kit.takeaways || []).forEach((t, i) => push(`${i + 1}. ${fixBrand(t)}`));
+  (kit.takeaways || []).forEach((t, i) => push(`${i + 1}. ${plain(t)}`));
   push("");
 
   // Books
   const books = resources.filter((r) => r.type === "book" && r.url);
   if (books.length) {
     push("Recommended Books");
-    books.forEach((b) => push(`${fixBrand(b.label)}: ${platforms && isAmazonUrl(b.url) ? pageOrPlaceholder : withAffiliateTag(b.url)}`));
+    books.forEach((b) => push(`${plain(b.label)}: ${platforms && isAmazonUrl(b.url) ? pageOrPlaceholder : withAffiliateTag(b.url)}`));
     push("");
   }
 
@@ -149,7 +155,7 @@ export function buildShowNotes(kit: ShowNotesKit, variant: ShowNotesVariant = "w
   push("Resources");
   resources
     .filter((r) => r.type !== "book" && r.url)
-    .forEach((r) => push(`${fixBrand(r.label)}: ${safeUrl(r.url)}`));
+    .forEach((r) => push(`${plain(r.label)}: ${safeUrl(r.url)}`));
   STANDARD_RESOURCES.forEach((r) =>
     // The Profit Streams® book link is an Amazon link → on Spotify/Apple use profit-streams.com instead
     push(`${r.label}: ${platforms && isAmazonUrl(r.url) ? "https://profit-streams.com/" : r.url}`)
@@ -196,7 +202,7 @@ export function buildShowNotes(kit: ShowNotesKit, variant: ShowNotesVariant = "w
   const chapters = kit.chapters || [];
   push("In this episode, we cover:");
   if (chapters.length) {
-    chapters.forEach((c) => push(`(${c.time}) ${fixBrand(c.title)}`));
+    chapters.forEach((c) => push(`(${c.time}) ${plain(c.title)}`));
   } else {
     push("[add chapters]");
     missing.push("Chapters (none were pasted when the kit was generated)");
@@ -206,7 +212,7 @@ export function buildShowNotes(kit: ShowNotesKit, variant: ShowNotesVariant = "w
   // Related + listen links
   push("Related Episodes");
   if (extras.relatedEpisode?.trim()) {
-    push(fixBrand(extras.relatedEpisode.trim()));
+    push(plain(extras.relatedEpisode.trim()));
   } else {
     push("[add a related past episode]");
     missing.push("Related episode");

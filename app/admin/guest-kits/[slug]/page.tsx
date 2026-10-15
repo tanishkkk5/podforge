@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { IconLabel, Sparkles, Lock, FolderOpen, Download, CheckCircle2, X, Database } from "@/app/components/Icons";
 import { buildShowNotes, KitExtras, Resource, ShowNotesVariant } from "@/lib/showNotes";
 import { FRAMEWORKS } from "@/lib/frameworks";
 import { TOPICS } from "@/lib/topics";
@@ -101,6 +102,19 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
   const [amazonInGuest, setAmazonInGuest] = useState(true);
   const [kitMsg, setKitMsg] = useState<string | null>(null);
 
+  // Ask Archive
+  const [archiveBusy, setArchiveBusy] = useState(false);
+  const [archiveMsg, setArchiveMsg] = useState<string | null>(null);
+  async function addToArchive() {
+    setArchiveBusy(true); setArchiveMsg("Adding the summary + transcript to Ask Archive…");
+    try {
+      const res = await fetch(`/api/guestkit/${params.slug}/archive`, { method: "POST" });
+      const b = await res.json();
+      if (!res.ok) throw new Error(b.error || "Failed.");
+      setArchiveMsg(`Added: ${b.summaryChunks} summary + ${b.transcriptChunks} transcript pieces.${b.transcriptMissing ? " No transcript is stored for this kit, so only the summary went in." : ""}`);
+    } catch (e: any) { setArchiveMsg(`Error: ${e.message}`); } finally { setArchiveBusy(false); }
+  }
+
   // Drive bundle
   const [bundleBusy, setBundleBusy] = useState(false);
   const [bundleMsg, setBundleMsg] = useState<string | null>(null);
@@ -173,9 +187,9 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
       const b = await res.json();
       if (!res.ok) throw new Error(b.error || "Image rebuild failed.");
       loadKit(b.kit);
-      setContentMsg(`✅ Saved and images rebuilt at ${new Date().toLocaleTimeString()}.`);
+      setContentMsg(`Saved and images rebuilt at ${new Date().toLocaleTimeString()}.`);
     } catch (e: any) {
-      setContentMsg(`❌ ${e.message}`);
+      setContentMsg(`Error: ${e.message}`);
     } finally { setContentBusy(null); }
   }
 
@@ -214,8 +228,8 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
     setKitMsg(null);
     try {
       await patch({ hashtags, amazon_in_guest_posts: amazonInGuest });
-      setKitMsg("✅ Saved. Every caption on the guest page now uses these.");
-    } catch (e: any) { setKitMsg(`❌ ${e.message}`); }
+      setKitMsg("Saved. Every caption on the guest page now uses these.");
+    } catch (e: any) { setKitMsg(`Error: ${e.message}`); }
   }
 
   async function buildBundle() {
@@ -228,12 +242,12 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
       const k = await fetch(`/api/guestkit/${params.slug}`).then((r) => r.json());
       if (k.kit) setExtras(k.kit.extras || {});
       setBundleMsg(
-        `✅ ${b.images} images, captions, transcript and START HERE are in.` +
+        `${b.images} images, captions, transcript and START HERE are in.` +
         (b.failed?.length ? ` ${b.failed.length} failed: ${b.failed.join(", ")}.` : "") +
         (b.shared ? " The folder is viewable by anyone with the link." : " ⚠️ Couldn't turn on link sharing: open the folder and share it with the guest yourself.")
       );
     } catch (e: any) {
-      setBundleMsg(`❌ ${e.message}`);
+      setBundleMsg(`Error: ${e.message}`);
     } finally { setBundleBusy(false); }
   }
 
@@ -254,13 +268,13 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
       if (!res.ok) throw new Error(body.error || "Could not suggest topics.");
       setTopics(body.topics);
       setTopicMsg("AI suggestion added: check it, then click Save topics.");
-    } catch (e: any) { setTopicMsg(`❌ ${e.message}`); } finally { setSuggesting(false); }
+    } catch (e: any) { setTopicMsg(`Error: ${e.message}`); } finally { setSuggesting(false); }
   }
 
   async function saveTopics() {
     setTopicMsg(null);
-    try { await patch({ topics, takeaway_topics: takeawayTopics }); setTopicMsg("✅ Topics saved."); }
-    catch (e: any) { setTopicMsg(`❌ ${e.message}`); }
+    try { await patch({ topics, takeaway_topics: takeawayTopics }); setTopicMsg("Topics saved."); }
+    catch (e: any) { setTopicMsg(`Error: ${e.message}`); }
   }
 
   function downloadNotes() {
@@ -320,7 +334,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
 
       <div className="wrap" style={{ padding: "8px 24px 100px" }}>
         {error && <div className="error-banner">{error}</div>}
-        {banner.isNew && <div className="section" style={{ borderLeft: "4px solid var(--af-teal)", fontSize: 14 }}>✅ Draft ready. Start with the title, then work down the page.</div>}
+        {banner.isNew && <div className="section" style={{ borderLeft: "4px solid var(--af-teal)", fontSize: 14 }}>Draft ready. Start with the title, then work down the page.</div>}
         {banner.truncated && (
           <div className="error-banner">
             This transcript was longer than the free AI limit, so only the first part was read for the first draft. Refresh
@@ -329,7 +343,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
         )}
         {locked && (
           <div className="section" style={{ borderLeft: "4px solid #0E8A50", fontSize: 14 }}>
-            🔒 Approved by <strong>{kit.reviewed_by}</strong>, so it&apos;s final and locked. To change anything, move it back to draft at the bottom.
+            <Lock size={15} style={{ verticalAlign: "-2px" }} aria-hidden /> Approved by <strong>{kit.reviewed_by}</strong>, so it&apos;s final and locked. To change anything, move it back to draft at the bottom.
           </div>
         )}
         {refreshErr && <div className="error-banner">{refreshErr}</div>}
@@ -343,12 +357,12 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
               <input type="text" value={title} onChange={(e) => edit(setTitle)(e.target.value)} />
             </div>
             <button type="button" onClick={() => refresh("titles")} disabled={!!refreshing} style={{ ...grey, ...small }}>
-              {refreshing === "titles" ? "Thinking…" : "✨ 5 new title ideas"}
+              {refreshing === "titles" ? "Thinking…" : <IconLabel icon={Sparkles}>5 new title ideas</IconLabel>}
             </button>
             {titleOpts && <Suggestions items={titleOpts} onPick={(t) => { edit(setTitle)(t); }} onClose={() => setTitleOpts(null)} />}
 
             {/* 2. EPISODE NUMBER */}
-            <h2>2. Episode number</h2>
+            <h2 style={{ marginTop: 28 }}>2. Episode number</h2>
             <div className="field" style={{ maxWidth: 200 }}>
               <input type="text" value={episodeNumber} onChange={(e) => edit(setEpisodeNumber)(e.target.value)} />
             </div>
@@ -363,11 +377,11 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
               <input type="text" value={hook} onChange={(e) => edit(setHook)(e.target.value)} />
             </div>
             <div className="field">
-              <label>Summary <span className="sub">2 to 3 sentences for the show notes.</span></label>
+              <label>Summary <span className="sub">Lenny style: who the guest is (credentials first), the proof, then &quot;[Guest] joins [Host] to ...&quot;. 3 sentences.</span></label>
               <textarea value={summary} onChange={(e) => edit(setSummary)(e.target.value)} style={{ minHeight: 80 }} />
             </div>
             <button type="button" onClick={() => refresh("description")} disabled={!!refreshing} style={{ ...grey, ...small }}>
-              {refreshing === "description" ? "Thinking…" : "✨ Rewrite hook + summary"}
+              {refreshing === "description" ? "Thinking…" : <IconLabel icon={Sparkles}>Rewrite hook + summary</IconLabel>}
             </button>
             {descOpt && (
               <div style={{ border: "1px dashed var(--af-teal)", borderRadius: 8, padding: 10, margin: "8px 0", background: "#F5FBFF", fontSize: 14 }}>
@@ -379,6 +393,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
             )}
 
             <h3 style={{ marginTop: 22 }}>10 key takeaways</h3>
+            <p className="hint" style={{ marginTop: 0 }}>Put **double asterisks** around 2 to 4 key words: they show bold and highlighted on the image cards.</p>
             {takeaways.map((t, i) => (
               <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 6 }}>
                 <span style={{ width: 22, paddingTop: 8, fontWeight: 700, fontSize: 13 }}>{i + 1}.</span>
@@ -387,7 +402,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
               </div>
             ))}
             <button type="button" onClick={() => refresh("takeaways")} disabled={!!refreshing} style={{ ...grey, ...small }}>
-              {refreshing === "takeaways" ? "Thinking (about 20 seconds)…" : "✨ New set of 10 takeaways"}
+              {refreshing === "takeaways" ? "Thinking (about 20 seconds)…" : <IconLabel icon={Sparkles}>New set of 10 takeaways</IconLabel>}
             </button>
             {takeawayOpt && (
               <div style={{ border: "1px dashed var(--af-teal)", borderRadius: 8, padding: 10, margin: "8px 0", background: "#F5FBFF", fontSize: 14 }}>
@@ -407,7 +422,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
               <input type="text" value={guestTitle} onChange={(e) => edit(setGuestTitle)(e.target.value)} />
             </div>
             <button type="button" onClick={() => refresh("quote")} disabled={!!refreshing} style={{ ...grey, ...small }}>
-              {refreshing === "quote" ? "Thinking…" : "✨ Other quotes"}
+              {refreshing === "quote" ? "Thinking…" : <IconLabel icon={Sparkles}>Other quotes</IconLabel>}
             </button>
             {quoteOpts && <Suggestions items={quoteOpts} onPick={(q) => { edit(setQuote)(q); setQuoteOpts(null); }} onClose={() => setQuoteOpts(null)} />}
 
@@ -432,7 +447,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
               <input type="text" value={r.label} onChange={(e) => updateResource(i, { label: e.target.value })} style={{ flex: 1, fontSize: 13 }} />
               <input type="text" value={r.url || ""} placeholder="paste real link here" onChange={(e) => updateResource(i, { url: e.target.value })} style={{ flex: 1, fontSize: 13 }} />
               <button type="button" onClick={() => { setResources((rs) => rs.filter((_, idx) => idx !== i)); setSavedAt(null); }}
-                style={{ ...grey, padding: "6px 10px", fontSize: 12 }} aria-label={`Remove ${r.label}`}>✕</button>
+                style={{ ...grey, padding: "6px 10px", fontSize: 12 }} aria-label={`Remove ${r.label}`}><X size={14} /></button>
             </div>
           ))}
           <p className="hint" style={{ marginTop: 14, marginBottom: 6 }}>Did the guest mention one of our frameworks? Add its page in one click:</p>
@@ -484,7 +499,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
               <ul style={{ margin: "6px 0 0 18px", padding: 0 }}>{notes.missing.map((m) => <li key={m}>{m}</li>)}</ul>
             </div>
           ) : (
-            <p style={{ color: "#0E8A50", fontWeight: 700, fontSize: 14 }}>✓ Complete, ready to publish.</p>
+            <p style={{ color: "#0E8A50", fontWeight: 700, fontSize: 14 }}><IconLabel icon={CheckCircle2}>Complete, ready to publish.</IconLabel></p>
           )}
           <textarea readOnly value={notes.text} style={{ minHeight: 420, fontSize: 13, lineHeight: 1.55 }} />
           <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
@@ -499,7 +514,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
         <div className="section">
           <h2 style={{ marginTop: 0 }}>7. Guest kit</h2>
           <p className="hint" style={{ marginTop: 0 }}>
-            Edit or ✨ refresh each caption right on the{" "}
+            Edit or refresh each caption right on the{" "}
             <a href={`/guestkit/${kit.slug}`} target="_blank" rel="noreferrer">guest kit preview ↗</a>. Every caption automatically ends with
             the episode links, Luke&apos;s LinkedIn and (if on) the Profit Streams® book link with the #ad line. The thumbnail is
             not part of the kit: send it in the email for now.
@@ -517,7 +532,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
           </fieldset>
           {kitMsg && <span style={{ marginLeft: 12, fontSize: 13 }}>{kitMsg}</span>}
           <p style={{ marginTop: 14 }}>
-            <a href={`/api/kitdownload/${kit.slug}`}><button type="button" style={grey}>⬇️ Download all (images + LinkedIn + Instagram captions)</button></a>
+            <a href={`/api/kitdownload/${kit.slug}`}><button type="button" style={grey}><IconLabel icon={Download}>Download all (images + LinkedIn + Instagram captions)</IconLabel></button></a>
           </p>
         </div>
 
@@ -529,7 +544,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
             and fills START HERE, the posts, captions and transcript. Then drop the audio, the 3 clips and the thumbnail into their folders.
             Run it again after edits or new links: files are replaced, not duplicated.
           </p>
-          <button type="button" onClick={buildBundle} disabled={bundleBusy}>{bundleBusy ? "Building…" : "📁 Build / update guest Drive folder"}</button>
+          <button type="button" onClick={buildBundle} disabled={bundleBusy}>{bundleBusy ? "Building…" : <IconLabel icon={FolderOpen}>Build / update guest Drive folder</IconLabel>}</button>
           {bundleMsg && <p style={{ fontSize: 13.5 }}>{bundleMsg}</p>}
           {extras.guestBundleUrl && (
             <ul style={{ fontSize: 14, lineHeight: 1.8 }}>
@@ -539,6 +554,20 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
               {extras.bundleThumbUrl && <li><a href={extras.bundleThumbUrl} target="_blank" rel="noreferrer">3 Thumbnail: drop the Canva thumbnail here ↗</a></li>}
             </ul>
           )}
+        </div>
+
+        {/* ASK ARCHIVE */}
+        <div className="section">
+          <h2 style={{ marginTop: 0 }}>Ask Archive</h2>
+          <p className="hint" style={{ marginTop: 0 }}>
+            Puts this episode&apos;s Lenny-style summary, takeaways, chapters and full transcript into Ask Archive search. Run it again after
+            edits: it replaces the old version.
+          </p>
+          <button type="button" onClick={addToArchive} disabled={archiveBusy || contentDirty}>
+            <IconLabel icon={Database}>{archiveBusy ? "Adding…" : "Add / update in Ask Archive"}</IconLabel>
+          </button>
+          {contentDirty && <span style={{ marginLeft: 10, fontSize: 13 }}>Save your changes first.</span>}
+          {archiveMsg && <p style={{ fontSize: 13.5 }}>{archiveMsg}</p>}
         </div>
 
         {/* TOPICS */}
@@ -559,7 +588,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
                   {TOPICS.filter((t) => !topics.includes(t)).map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               )}
-              <button type="button" onClick={suggestTopics} disabled={suggesting} style={{ ...grey, ...small }}>{suggesting ? "Thinking…" : "✨ Suggest topics"}</button>
+              <button type="button" onClick={suggestTopics} disabled={suggesting} style={{ ...grey, ...small }}>{suggesting ? "Thinking…" : <IconLabel icon={Sparkles}>Suggest topics</IconLabel>}</button>
             </div>
             {(kit.takeaways || []).map((t: string, i: number) => (
               <div key={i} style={{ display: "flex", gap: 10, alignItems: "center", padding: "6px 0", borderBottom: "1px solid var(--line)" }}>
@@ -587,7 +616,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
           {locked ? (
             <>
               <p style={{ fontSize: 14 }}>
-                ✅ Approved by <strong>{kit.reviewed_by}</strong>{kit.reviewed_at ? ` on ${new Date(kit.reviewed_at).toLocaleString()}` : ""}. The guest&apos;s link is live:{" "}
+                Approved by <strong>{kit.reviewed_by}</strong>{kit.reviewed_at ? ` on ${new Date(kit.reviewed_at).toLocaleString()}` : ""}. The guest&apos;s link is live:{" "}
                 <a href={`/guestkit/${kit.slug}`} target="_blank" rel="noreferrer">/guestkit/{kit.slug}</a>
               </p>
               <button type="button" onClick={() => setReview("unapprove")} disabled={reviewing} style={grey}>Move back to draft (hides it from the guest and unlocks editing)</button>

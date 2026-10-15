@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BrandIcon, Check, Copy, Download, FolderOpen, IconLabel, Pencil, Sparkles } from "@/app/components/Icons";
 import {
   captionBody, captionFooter, Captions, CaptionKit, fullCaption, hashtagsOf, Platform, PostKey, POSTS, postImages, postsWithImages,
 } from "@/lib/guestCaptions";
@@ -20,6 +21,7 @@ function downloadUrl(url: string, filename: string) {
 
 const btnGrey = { background: "#F0F3F6", color: "var(--af-navy)" } as const;
 const small = { padding: "6px 12px", fontSize: 12.5 } as const;
+const heroBtn = { background: "#fff", color: "var(--af-navy)" } as const;
 
 function PostCard({
   n, kit, postKey, editable, onSaveBody,
@@ -52,13 +54,13 @@ function PostCard({
       setDraft(b.caption);
       setEditing(true);
       setMsg("New caption below. Edit it if you like, then Save.");
-    } catch (e: any) { setMsg(`❌ ${e.message}`); } finally { setBusy(null); }
+    } catch (e: any) { setMsg(`Error: ${e.message}`); } finally { setBusy(null); }
   }
 
   async function save(value: string | null) {
     setBusy("Saving…"); setMsg(null);
-    try { await onSaveBody(postKey, platform, value); setEditing(false); setMsg("✅ Saved"); }
-    catch (e: any) { setMsg(`❌ ${e.message}`); } finally { setBusy(null); }
+    try { await onSaveBody(postKey, platform, value); setEditing(false); setMsg("Saved"); }
+    catch (e: any) { setMsg(`Error: ${e.message}`); } finally { setBusy(null); }
   }
 
   const title = `${n}. ${post.label}${postKey === "takeaways" ? ` (${images.length} slides, post them together, in order)` : ""}`;
@@ -84,21 +86,24 @@ function PostCard({
         {(["li", "ig"] as Platform[]).map((p) => (
           <button key={p} type="button" onClick={() => { setPlatform(p); setEditing(false); setMsg(null); }}
             style={{ background: platform === p ? "var(--af-navy)" : "#F0F3F6", color: platform === p ? "#fff" : "var(--ink-soft)", padding: "6px 14px", fontSize: 13 }}>
-            {p === "li" ? "LinkedIn" : "Instagram"}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+              <BrandIcon brand={p === "li" ? "linkedin" : "instagram"} size={15} color={platform === p ? "#fff" : undefined} />
+              {p === "li" ? "LinkedIn" : "Instagram"}
+            </span>
           </button>
         ))}
       </div>
 
       {editing ? (
         <div style={{ border: "1px solid var(--af-teal)", borderRadius: 8, padding: 12, background: "#F5FBFF" }}>
-          <label style={{ fontSize: 13, fontWeight: 700 }}>Caption text (editable)</label>
+          <label style={{ fontSize: 13, fontWeight: 700 }}>Caption text (editable). Put **double asterisks** around 2 or 3 key phrases to make them bold.</label>
           <textarea value={draft} onChange={(e) => setDraft(e.target.value)} style={{ minHeight: 120, fontSize: 13.5, marginTop: 6 }} />
           <p style={{ fontSize: 12.5, color: "var(--ink-soft)", whiteSpace: "pre-wrap", margin: "8px 0" }}>
             Always added after it (can&apos;t be removed):{"\n"}{captionFooter(kit, platform)}{"\n"}{hashtagsOf(kit)}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button type="button" style={small} disabled={!!busy || !draft.trim()} onClick={() => save(draft)}>Save caption</button>
-            <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={refresh}>✨ Refresh again</button>
+            <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={refresh}><IconLabel icon={Sparkles} size={14}>Refresh again</IconLabel></button>
             <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={() => { setEditing(false); setMsg(null); }}>Cancel</button>
           </div>
         </div>
@@ -108,7 +113,7 @@ function PostCard({
           <br />
           <button type="button" onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1800); }}
             style={{ background: copied ? "#0E8A50" : "var(--af-navy)", marginTop: 10, ...small }}>
-            {copied ? "Copied!" : "Copy caption"}
+            <IconLabel icon={copied ? Check : Copy} size={14}>{copied ? "Copied!" : "Copy caption"}</IconLabel>
           </button>
         </div>
       )}
@@ -117,8 +122,8 @@ function PostCard({
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 6, padding: "8px 10px", background: "#FFF8EC", borderRadius: 8 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: "#B54708" }}>TEAM ONLY</span>
           <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy}
-            onClick={() => { setDraft(captionBody(kit, postKey, platform)); setEditing(true); setMsg(null); }}>✏️ Edit</button>
-          <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={refresh}>✨ Refresh</button>
+            onClick={() => { setDraft(captionBody(kit, postKey, platform)); setEditing(true); setMsg(null); }}><IconLabel icon={Pencil} size={14}>Edit</IconLabel></button>
+          <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={refresh}><IconLabel icon={Sparkles} size={14}>Refresh</IconLabel></button>
           {isEdited && <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={() => save(null)}>Reset to default</button>}
         </div>
       )}
@@ -160,13 +165,15 @@ export default function GuestKitClient({ kit: initial, editable = false }: { kit
             so it sounds like you.
           </p>
           <p style={{ marginTop: 12, padding: "10px 14px", background: "rgba(255,255,255,0.12)", borderRadius: 8 }}>
-            🚀 <strong>Launch weekend:</strong> your episode goes live on <strong>Saturday at 7:30 AM ET</strong>. Posting within the
+            <strong>Launch weekend:</strong> your episode goes live on <strong>Saturday at 7:30 AM ET</strong>. Posting within the
             first 24 hours is the single biggest boost for its reach. On LinkedIn, tag Luke Hohmann by typing @ and picking his name.
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
-            <a href={`/api/kitdownload/${kit.slug}`}><button type="button" style={{ background: "#fff", color: "var(--af-navy)" }}>⬇️ Download all (images + captions)</button></a>
-            {x.guestBundleUrl && <a href={x.guestBundleUrl} target="_blank" rel="noreferrer"><button type="button" style={{ background: "#fff", color: "var(--af-navy)" }}>📁 Drive folder (audio, clips, transcript)</button></a>}
-            {x.lukePostUrl && <a href={x.lukePostUrl} target="_blank" rel="noreferrer"><button type="button" style={{ background: "#fff", color: "var(--af-navy)" }}>👍 Like and reshare Luke&apos;s post</button></a>}
+            <a href={`/api/kitdownload/${kit.slug}`}><button type="button" style={heroBtn}><IconLabel icon={Download}>Download all (images + captions)</IconLabel></button></a>
+            {x.guestBundleUrl && <a href={x.guestBundleUrl} target="_blank" rel="noreferrer"><button type="button" style={heroBtn}><IconLabel icon={FolderOpen}>Drive folder (audio, clips, transcript)</IconLabel></button></a>}
+            {x.spotifyUrl && <a href={x.spotifyUrl} target="_blank" rel="noreferrer"><button type="button" style={heroBtn}><span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><BrandIcon brand="spotify" />Listen on Spotify</span></button></a>}
+            {x.appleUrl && <a href={x.appleUrl} target="_blank" rel="noreferrer"><button type="button" style={heroBtn}><span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><BrandIcon brand="applePodcasts" />Listen on Apple Podcasts</span></button></a>}
+            {x.lukePostUrl && <a href={x.lukePostUrl} target="_blank" rel="noreferrer"><button type="button" style={heroBtn}><span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><BrandIcon brand="linkedin" />Like and reshare Luke&apos;s post</span></button></a>}
           </div>
         </div>
       </header>
@@ -177,7 +184,7 @@ export default function GuestKitClient({ kit: initial, editable = false }: { kit
             <h2 style={{ marginTop: 0 }}>Team only: hashtags for every caption</h2>
             <div style={{ display: "flex", gap: 8 }}>
               <input type="text" value={tags} placeholder={hashtagsOf({ ...kit, hashtags: "" })} onChange={(e) => setTags(e.target.value)} />
-              <button type="button" onClick={async () => { setTagMsg(null); try { await patch({ hashtags: tags }); setTagMsg("✅ Saved"); } catch (e: any) { setTagMsg(`❌ ${e.message}`); } }}>Save</button>
+              <button type="button" onClick={async () => { setTagMsg(null); try { await patch({ hashtags: tags }); setTagMsg("Saved"); } catch (e: any) { setTagMsg(`Error: ${e.message}`); } }}>Save</button>
             </div>
             {tagMsg && <p style={{ fontSize: 13, margin: "6px 0 0" }}>{tagMsg}</p>}
             <p className="hint" style={{ marginBottom: 0 }}>

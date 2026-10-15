@@ -1,4 +1,6 @@
-import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
+import { createCanvas, loadImage, GlobalFonts, Path2D } from "@napi-rs/canvas";
+import { BRANDS, Brand } from "./brandIcons";
+import { markRuns, stripMarks } from "./textStyle";
 import path from "path";
 import fs from "fs";
 
@@ -66,7 +68,84 @@ async function drawIcon(ctx: any) {
   return 70;
 }
 
+/** Official platform logo (Simple Icons path, 24x24) drawn in white. */
+function drawBrand(ctx: any, brand: Brand, x: number, y: number, size: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / 24, size / 24);
+  ctx.fillStyle = WHITE;
+  ctx.fill(new Path2D(BRANDS[brand].path));
+  ctx.restore();
+}
+
+/** "Listen on" mark, top right of every card: Spotify + Apple Podcasts logos (decision 0017). */
+function platformBadges(ctx: any) {
+  const size = 40;
+  drawBrand(ctx, "applePodcasts", W - 70 - size, 72, size);
+  drawBrand(ctx, "spotify", W - 70 - size * 2 - 18, 72, size);
+}
+
+/**
+ * Text with **key phrases**: normal words in regular weight, marked words in bold with a soft highlight.
+ * Returns the y after the last line.
+ */
+function drawRich(ctx: any, text: string, x: number, y: number, maxW: number, size: number, lineH: number): number {
+  // Tokens keep punctuation glued to its word ("projects," not "projects ,")
+  const tokens: { w: string; bold: boolean; spaceBefore: boolean }[] = [];
+  let pendingSpace = false;
+  for (const r of markRuns(text)) {
+    for (const part of r.text.split(/(\s+)/)) {
+      if (!part) continue;
+      if (/^\s+$/.test(part)) { pendingSpace = true; continue; }
+      tokens.push({ w: part, bold: r.bold, spaceBefore: pendingSpace && tokens.length > 0 });
+      pendingSpace = false;
+    }
+  }
+  const font = (b: boolean) => `${size}px ${b ? "InterBold" : "InterReg"}`;
+  ctx.font = font(false);
+  const space = ctx.measureText(" ").width;
+  type Placed = { w: string; bold: boolean; x: number; width: number };
+  const lines: Placed[][] = [[]];
+  let cx = 0;
+  for (const t of tokens) {
+    ctx.font = font(t.bold);
+    const width = ctx.measureText(t.w).width;
+    const gap = t.spaceBefore && lines[lines.length - 1].length ? space : 0;
+    if (cx + gap + width > maxW && lines[lines.length - 1].length && t.spaceBefore) {
+      lines.push([]);
+      cx = 0;
+      lines[lines.length - 1].push({ w: t.w, bold: t.bold, x: 0, width });
+      cx = width;
+    } else {
+      lines[lines.length - 1].push({ w: t.w, bold: t.bold, x: cx + gap, width });
+      cx += gap + width;
+    }
+  }
+  for (const line of lines) {
+    // one highlight per continuous bold span
+    let i = 0;
+    while (i < line.length) {
+      if (!line[i].bold) { i++; continue; }
+      let j = i;
+      while (j + 1 < line.length && line[j + 1].bold) j++;
+      const left = x + line[i].x - 6;
+      const right = x + line[j].x + line[j].width + 6;
+      ctx.fillStyle = "rgba(255,255,255,0.16)";
+      ctx.fillRect(left, y - size * 0.9, right - left, size * 1.2);
+      i = j + 1;
+    }
+    for (const t of line) {
+      ctx.font = font(t.bold);
+      ctx.fillStyle = WHITE;
+      ctx.fillText(t.w, x + t.x, y);
+    }
+    y += lineH;
+  }
+  return y;
+}
+
 async function kickerLabel(ctx: any, label: string) {
+  platformBadges(ctx);
   const xStart = await drawIcon(ctx);
   ctx.font = "24px InterBold";
   ctx.fillStyle = WHITE;
@@ -195,14 +274,7 @@ export async function makeTakeawaysCarousel(
     ctx.fillStyle = GRAY_SOFT;
     ctx.fillText(`of ${total}`, 70, 285);
 
-    ctx.font = "40px InterBold";
-    ctx.fillStyle = WHITE;
-    const wrapped = wrapText(ctx, takeaways[i], 920);
-    let y = 390;
-    for (const line of wrapped) {
-      ctx.fillText(line, 70, y);
-      y += 52;
-    }
+    drawRich(ctx, takeaways[i], 70, 390, 920, 42, 56);
 
     footer(ctx, episodeTitle);
     buffers.push(canvas.toBuffer("image/png"));

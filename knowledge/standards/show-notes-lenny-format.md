@@ -3,7 +3,7 @@ title: Show notes — Lenny format
 type: standard
 owner: tanisk-pandey
 status: accepted
-updated: 2026-10-06
+updated: 2026-10-16
 related: brand-profit-streams, links-and-affiliate-tag, 0007-lenny-format-show-notes
 ---
 
@@ -13,9 +13,9 @@ related: brand-profit-streams, links-and-affiliate-tag, 0007-lenny-format-show-n
 the resources and related episodes.
 
 **Rule — sections, in this order:**
-1. Title: `Ep-XX [specific title] — with [Guest]`
+1. Title: `Ep-XX [specific title], with [Guest]`
 2. One-line hook (the most surprising idea)
-3. Guest bio + what the episode explores (2–3 sentences)
+3. Lenny-style summary: who the guest is (credentials first), one line of proof, then "[Guest] joins [Host] to ..." (3 sentences, decision 0017)
 4. "In this conversation, we discuss:" — numbered, 6–10 items
 5. Recommended Books (Amazon links with affiliate tag)
 6. Resources — every named tool/company/framework, plus the three standard Profit Streams® links
@@ -37,3 +37,4 @@ missing. A human reviews before publishing.
 **Change log:**
 - 2026-09 — format locked as the standard for every episode.
 - 2026-10-06 — written down as a standard.
+- 2026-10-16 — title uses ", with"; summary is Lenny style (decision 0017).

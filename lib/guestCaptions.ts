@@ -9,6 +9,7 @@
  * Never an em-dash, never an invented link.
  */
 import { fixBrand } from "./showNotes";
+import { applyBoldMarks, stripMarks } from "./textStyle";
 
 export type Platform = "li" | "ig";
 export type PostKey = "title" | "summary" | "quote" | "takeaways" | "chapters";
@@ -52,29 +53,34 @@ export function noDashes(s: string): string {
   return (s || "").replace(/\s*[—–]\s*/g, ", ").replace(/,\s*,/g, ",");
 }
 
-/** The AI/person-editable part of each caption, written in the guest's voice. */
+/**
+ * The AI/person-editable part of each caption, in the guest's voice (decision 0017):
+ * curiosity first (a question or open loop, never an invented claim), 2-3 **bold** key phrases.
+ */
 export function defaultBody(kit: CaptionKit, key: PostKey, p: Platform): string {
   const host = kit.host_name;
+  const hook = stripMarks(kit.hook || "").trim();
+  const first = (kit.takeaways || [])[0] || "";
   const t: Record<PostKey, Record<Platform, string>> = {
     title: {
-      li: `${kit.hook}\n\nI joined ${host} on the Profit Streams® Podcast to talk about it: "${kit.title}".`,
-      ig: `${kit.hook} 🎧\n\nMy conversation with ${host} on the Profit Streams® Podcast is out now.`,
+      li: `**${hook}**\n\nSo what do you do instead?\n\n${host} and I dug into it on the Profit Streams® Podcast: "${kit.title}".`,
+      ig: `**${hook}** 🎧\n\nSo what do you do instead? My conversation with ${host} on the Profit Streams® Podcast is out now.`,
     },
     summary: {
-      li: `${kit.hook}\n\nThat's the big idea from my episode of the Profit Streams® Podcast with ${host}.`,
-      ig: `${kit.hook} 💡\n\nThe big idea from my Profit Streams® Podcast episode.`,
+      li: `One idea from my Profit Streams® Podcast episode worth sitting with:\n\n**${hook}**\n\nThe "why" behind it is in my conversation with ${host}.`,
+      ig: `**${hook}** 💡\n\nThe "why" is in my Profit Streams® Podcast episode with ${host}.`,
     },
     quote: {
-      li: `"${kit.best_quote}"\n\nFrom my conversation with ${host} on the Profit Streams® Podcast.`,
-      ig: `Said on the Profit Streams® Podcast 👆\n\nMy full conversation with ${host} is out now.`,
+      li: `"${kit.best_quote}"\n\nI said this on the Profit Streams® Podcast with ${host}. **The story behind it** is in the full episode.`,
+      ig: `Said on the Profit Streams® Podcast 👆\n\n**The story behind it** is in my episode with ${host}.`,
     },
     takeaways: {
-      li: `10 ideas from my conversation with ${host} on the Profit Streams® Podcast 👇\n\nSwipe through, the full episode is out now.`,
-      ig: `10 lessons from my Profit Streams® Podcast episode 🧠 Swipe ➡️ for all 10.`,
+      li: `10 lessons from my conversation with ${host} on the Profit Streams® Podcast.\n\nLesson #1: ${first}\n\nSwipe for the other 9. **Which one would you push back on?**`,
+      ig: `10 lessons from my Profit Streams® Podcast episode 🧠\n\nSwipe ➡️ **Which one would you push back on?**`,
     },
     chapters: {
-      li: `Everything ${host} and I covered on the Profit Streams® Podcast, timestamped so you can jump to what matters to you.`,
-      ig: `Episode breakdown ⏱️ Swipe to see what we covered, minute by minute.`,
+      li: `Short on time? Here's every topic ${host} and I covered on the Profit Streams® Podcast, timestamped.\n\n**Pick the one you disagree with** and start there.`,
+      ig: `Episode breakdown ⏱️ Swipe for every topic, minute by minute. **Start with the one you disagree with.**`,
     },
   };
   return noDashes(fixBrand(t[key][p]));
@@ -101,8 +107,9 @@ export function captionFooter(kit: CaptionKit, p: Platform): string {
   const lines: string[] = [];
 
   if (p === "li") {
+    // No fruit emoji for Apple: platform names are written out (decision 0017)
     if (spotify) lines.push(`🎧 Spotify: ${spotify}`);
-    if (apple) lines.push(`🍎 Apple Podcasts: ${apple}`);
+    if (apple) lines.push(`🎧 Apple Podcasts: ${apple}`);
     if (!spotify && !apple) lines.push(`🎧 Listen: ${page}`);
     else if (x.episodePageUrl?.trim()) lines.push(`📝 Show notes: ${page}`);
     lines.push(`🔗 Follow Luke Hohmann on LinkedIn: ${LUKE_LINKEDIN}`);
@@ -123,7 +130,8 @@ export function captionFooter(kit: CaptionKit, p: Platform): string {
 /** Full caption, exactly what the guest copies. */
 export function fullCaption(kit: CaptionKit, key: PostKey, p: Platform): string {
   const sep = p === "ig" ? "\n.\n.\n" : "\n\n";
-  return `${captionBody(kit, key, p)}\n\n${captionFooter(kit, p)}${sep}${hashtagsOf(kit)}`;
+  // **key phrases** → Unicode bold, the only bold LinkedIn/Instagram show
+  return `${applyBoldMarks(captionBody(kit, key, p))}\n\n${captionFooter(kit, p)}${sep}${hashtagsOf(kit)}`;
 }
 
 /** Plain-text file with every caption for one platform (Download all + Drive bundle). */

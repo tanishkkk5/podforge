@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { groqJson, GroqRateLimitError } from "@/lib/groqClient";
 import { fixBrand } from "@/lib/showNotes";
 import { noDashes, POSTS, PostKey } from "@/lib/guestCaptions";
+import { BOLD_RULES, CURIOSITY_RULES, LENNY_SUMMARY_RULES } from "@/lib/styleGuide";
+import { stripMarks } from "@/lib/textStyle";
 
 // Login required (middleware.ts). "✨ Refresh" buttons in the Episode Studio (decision 0016).
 // Returns NEW suggestions only; nothing is saved until a person picks one and clicks Save.
@@ -39,7 +41,7 @@ Current title: ${kit.title}
 Hook: ${kit.hook}
 Summary: ${kit.summary}
 Key takeaways:
-${(kit.takeaways || []).map((t: string, i: number) => `${i + 1}. ${t}`).join("\n")}`;
+${(kit.takeaways || []).map((t: string, i: number) => `${i + 1}. ${stripMarks(t)}`).join("\n")}`;
     const needsTranscript = ["titles", "takeaways", "quote", "description"].includes(what);
     if (needsTranscript && !kit.transcript) {
       // Kits made before the Studio don't have their transcript stored: work from the summary + takeaways
@@ -53,7 +55,7 @@ ${(kit.takeaways || []).map((t: string, i: number) => `${i + 1}. ${t}`).join("\n
       const out = await groqJson({
         prompt: `${about}${transcriptPart}
 
-Write 5 NEW episode title options. Each: under 60 characters, specific to this conversation (a sharp idea, tension, or result the guest talked about), not generic ("Insights on Leadership" is bad), different angles from each other and from the current title. Do not include the guest's name or "Ep". ${RULES}
+Write 5 NEW episode title options. Each: under 60 characters, specific to this conversation, not generic ("Insights on Leadership" is bad), different angles from each other and from the current title. Do not include the guest's name or "Ep". ${CURIOSITY_RULES} ${RULES}
 Respond with JSON only: {"titles": ["...", "...", "...", "...", "..."]}`,
         maxTokens: 900, temperature: 0.9,
       });
@@ -66,7 +68,10 @@ Respond with JSON only: {"titles": ["...", "...", "...", "...", "..."]}`,
       const out = await groqJson({
         prompt: `${about}${transcriptPart}
 
-Rewrite the episode's hook and summary. hook: one sentence under 25 words, the most surprising or useful idea. summary: 2 to 3 sentences in third person about what the episode covers. ${RULES}
+Rewrite the episode's hook and summary.
+hook: one sentence under 25 words. ${CURIOSITY_RULES}
+summary: ${LENNY_SUMMARY_RULES}
+${RULES}
 Respond with JSON only: {"hook": "...", "summary": "..."}`,
         maxTokens: 700, temperature: 0.8,
       });
@@ -80,7 +85,7 @@ Respond with JSON only: {"hook": "...", "summary": "..."}`,
 Transcript (excerpt):
 ${excerpt(kit.transcript)}
 
-Write exactly 10 key takeaways, each one complete sentence (under 30 words) with a distinct, concrete idea from the conversation, in the order they come up. ${RULES}
+Write exactly 10 key takeaways, each one complete sentence (under 30 words) with a distinct, concrete idea from the conversation, in the order they come up. In each takeaway, wrap the 2 to 4 most important words in **double asterisks**. ${RULES}
 Respond with JSON only: {"takeaways": ["...", ... 10 items]}`,
         maxTokens: 1400, temperature: 0.6, retryMaxTokens: 1800,
       });
@@ -118,7 +123,10 @@ Respond with JSON only: {"quotes": ["...", "...", "..."]}`,
       const out = await groqJson({
         prompt: `${about}
 
-Write a NEW ${platform === "li" ? "LinkedIn" : "Instagram"} caption for ${kit.guest_name} to post on their own account, ${what2[post.key]}. Write in ${kit.guest_name}'s first-person voice, warm and confident, mention ${kit.host_name} and the Profit Streams® Podcast. ${platform === "li" ? "40 to 90 words, a strong first line, short paragraphs." : "20 to 45 words, 1 or 2 fitting emojis are fine."} Do NOT add hashtags, links, or a call to listen: those are added automatically after your text. ${RULES}
+Write a NEW ${platform === "li" ? "LinkedIn" : "Instagram"} caption for ${kit.guest_name} to post on their own account, ${what2[post.key]}. Write in ${kit.guest_name}'s first-person voice, warm and confident, mention ${kit.host_name} and the Profit Streams® Podcast. ${platform === "li" ? "40 to 90 words. The first line (under 12 words) must make people stop scrolling and click 'see more'. Short paragraphs, one idea each." : "20 to 45 words, first line is the hook, 1 or 2 fitting emojis are fine."}
+${CURIOSITY_RULES} End with a line that makes them want to hear the full answer in the episode, without giving it away.
+${BOLD_RULES}
+Do NOT add hashtags, links, or "listen here": those are added automatically after your text. ${RULES}
 Respond with JSON only: {"caption": "..."}`,
         maxTokens: 700, temperature: 0.9,
       });

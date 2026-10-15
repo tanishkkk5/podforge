@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { IconLabel, Search } from "@/app/components/Icons";
 
 interface Guest {
   intakeId: string;
@@ -102,9 +103,9 @@ export default function EpisodeStudioStart() {
       const b = await r.json();
       if (!r.ok) throw new Error(b.error || "Check failed.");
       setFlags(b.flagged || []);
-      if (!(b.flagged || []).length) setCheckMsg("✅ No misspelled names found.");
+      if (!(b.flagged || []).length) setCheckMsg("No misspelled names found.");
     } catch (e: any) {
-      setCheckMsg(`❌ ${e.message}`);
+      setCheckMsg(`Error: ${e.message}`);
     } finally { setChecking(false); }
   }
 
@@ -252,7 +253,7 @@ export default function EpisodeStudioStart() {
               <textarea value={transcript} onChange={(e) => { setTranscript(e.target.value); setFlags(null); }} style={{ minHeight: 280 }} required />
             </div>
             <button type="button" onClick={checkNames} disabled={checking || !transcript.trim()} style={grey}>
-              {checking ? "Checking…" : "🔎 Check names"}
+              {checking ? "Checking…" : <IconLabel icon={Search}>Check names</IconLabel>}
             </button>
             {checkMsg && <span style={{ marginLeft: 10, fontSize: 13 }}>{checkMsg}</span>}
             {flags && flags.length > 0 && (

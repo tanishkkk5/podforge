@@ -17,6 +17,7 @@
 
 import { TOPICS, cleanTopics, Topic } from "./topics";
 import { groqChat, stripFences } from "./groqClient";
+import { LENNY_SUMMARY_RULES, CURIOSITY_RULES } from "./styleGuide";
 
 interface ResourceMention {
   label: string; // e.g. "Acme Corp" or "The Lean Startup by Eric Ries"
@@ -67,10 +68,10 @@ export async function extractEpisodeContent(
 Below is the full raw transcript. Extract the following, and respond with ONLY valid JSON, no other text, no markdown code fences, no explanation before or after:
 
 {
-  "title": "A punchy episode title, under 60 characters, capturing the core idea (not generic)",
-  "hook": "One sentence, under 25 words, that would make someone want to read more — the single most surprising or provocative idea from the episode",
-  "summary": "A 2-3 sentence summary of what the episode covers, written in third person",
-  "takeaways": ["exactly 10 key takeaways, each a complete sentence capturing a distinct idea from the conversation, ordered roughly by how they appear in the conversation"],
+  "title": "A punchy episode title, under 60 characters, that makes people curious (a tension, surprising claim or specific result from the episode, not generic)",
+  "hook": "One sentence, under 25 words, that opens a curiosity loop: the single most surprising or counterintuitive idea from the episode",
+  "summary": "Lenny-style episode summary (rules below)",
+  "takeaways": ["exactly 10 key takeaways, each a complete sentence (under 30 words) capturing a distinct idea, ordered by how they appear in the conversation. In each one, wrap the 2 to 4 most important words in **double asterisks**"],
   "bestQuote": "The single most quotable, self-contained line from the guest in the transcript — must be an exact quote, verbatim from the transcript, under 200 characters",
   "guestTitle": "A short professional title/role for the guest, inferred from how they're introduced or what they discuss (e.g. 'Strategic Portfolio Management Expert')",
   "resources": [
@@ -79,6 +80,13 @@ Below is the full raw transcript. Extract the following, and respond with ONLY v
   "topics": ["1 to 3 topics this episode is MOST about, chosen ONLY from the allowed topic list below"],
   "takeawayTopics": ["exactly 10 entries, one per takeaway in the same order: the single best topic for that takeaway, chosen ONLY from the allowed topic list below"]
 }
+
+Summary rules:
+${LENNY_SUMMARY_RULES}
+
+Title and hook rules: ${CURIOSITY_RULES}
+
+Never use em-dashes or en-dashes.
 
 Allowed topic list (use these exact words, nothing else): ${TOPICS.join(" | ")}
 

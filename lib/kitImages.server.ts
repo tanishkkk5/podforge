@@ -7,6 +7,7 @@
 import { getSupabaseAdmin } from "./supabase";
 import { makeTitleCard, makeSummaryCard, makeQuoteCard, makeTakeawaysCarousel, makeChaptersCards } from "./socialAssets";
 import { fixBrand } from "./showNotes";
+import { stripMarks } from "./textStyle";
 
 export interface KitImageInput {
   slug: string;
@@ -46,10 +47,10 @@ export async function fetchHeadshot(url: string | null | undefined): Promise<Buf
 
 export async function renderKitImages(k: KitImageInput, headshot: Buffer | null): Promise<KitImageUrls> {
   const ep = String(k.episode_number || "").replace(/^ep-?/i, "");
-  const title = fixBrand(k.title);
+  const title = fixBrand(stripMarks(k.title));
   const titleBuf = await makeTitleCard(title, k.guest_name, k.host_name, ep);
-  const summaryBuf = await makeSummaryCard(fixBrand(k.hook), title, ep);
-  const quoteBuf = await makeQuoteCard(fixBrand(k.best_quote), k.guest_name, k.guest_title || "", title, ep, headshot);
+  const summaryBuf = await makeSummaryCard(fixBrand(stripMarks(k.hook)), title, ep);
+  const quoteBuf = await makeQuoteCard(fixBrand(stripMarks(k.best_quote)), k.guest_name, k.guest_title || "", title, ep, headshot);
   const takeawayBufs = await makeTakeawaysCarousel(k.takeaways.map(fixBrand), title, ep);
   const chapterBufs = k.chapters?.length ? await makeChaptersCards(k.chapters, title, ep) : [];
 
