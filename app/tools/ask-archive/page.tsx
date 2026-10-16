@@ -43,7 +43,7 @@ export default function AskArchivePage() {
         .join("\n\n---\n\n") +
       "\n\nPlease synthesize a clear answer from these excerpts.";
     navigator.clipboard.writeText(text);
-    alert("Copied — paste this into your chat with Claude to get a synthesized answer.");
+    alert("Copied, paste this into your chat with Claude to get a synthesized answer.");
   }
 
   return (
@@ -54,7 +54,7 @@ export default function AskArchivePage() {
           <h1>Ask the Archive</h1>
           <p>
             Search across every past transcript and Magic Clip. This finds
-            the most relevant real quotes — for a synthesized answer, copy
+            the most relevant real quotes, for a synthesized answer, copy
             the results and paste them into a chat with Claude (free).
           </p>
         </div>
@@ -82,7 +82,7 @@ export default function AskArchivePage() {
           <div className="section">
             <h2>Most relevant excerpts</h2>
             {matches.length === 0 ? (
-              <p className="hint">No matches found — try rephrasing the question.</p>
+              <p className="hint">No matches found, try rephrasing the question.</p>
             ) : (
               <>
                 <button
@@ -103,7 +103,7 @@ export default function AskArchivePage() {
                     }}
                   >
                     <p style={{ fontSize: 13, color: "var(--af-teal)", fontWeight: 600, margin: "0 0 8px" }}>
-                      {m.episode_name} — {m.source_type} ({(m.similarity * 100).toFixed(0)}% match)
+                      {m.episode_name}, {m.source_type} ({(m.similarity * 100).toFixed(0)}% match)
                     </p>
                     <p style={{ fontSize: 14.5, margin: 0 }}>{m.content}</p>
                   </div>

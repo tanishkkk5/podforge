@@ -83,7 +83,9 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
 
   // AI refresh suggestions
   const [titleOpts, setTitleOpts] = useState<string[] | null>(null);
-  const [quoteOpts, setQuoteOpts] = useState<string[] | null>(null);
+  const [quoteOpts, setQuoteOpts] = useState<{ text: string; time: string | null }[] | null>(null);
+  const [quoteTime, setQuoteTime] = useState("");
+  const [explainer, setExplainer] = useState<{ term: string; kind: "abbr" | "tech"; meaning: string; example: string; source?: string; include: boolean } | null>(null);
   const [descOpt, setDescOpt] = useState<{ hook: string; summary: string } | null>(null);
   const [takeawayOpt, setTakeawayOpt] = useState<string[] | null>(null);
   const [refreshing, setRefreshing] = useState<string | null>(null);
@@ -136,6 +138,8 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
     setSummary(k.summary || "");
     setGuestTitle(k.guest_title || "");
     setQuote(k.best_quote || "");
+    setQuoteTime(k.extras?.quoteTime || "");
+    setExplainer(k.extras?.explainer || null);
     setTakeaways(k.takeaways || []);
     setChaptersText(chaptersToText(k.chapters));
     setResources((k.resources || []).map((r: Resource) => ({ ...r, url: r.url || "" })));
@@ -181,7 +185,7 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
   async function saveContent() {
     setContentBusy("Saving…"); setContentMsg(null);
     try {
-      await patch({ title, episode_number: episodeNumber, hook, summary, guest_title: guestTitle, best_quote: quote, takeaways, chapters });
+      await patch({ title, episode_number: episodeNumber, hook, summary, guest_title: guestTitle, best_quote: quote, quote_time: quoteTime, explainer, takeaways, chapters });
       setContentBusy("Rebuilding images with your changes (about 15 seconds)…");
       const res = await fetch(`/api/guestkit/${params.slug}/images`, { method: "POST" });
       const b = await res.json();
@@ -203,6 +207,10 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
       if (!res.ok) throw new Error(b.error || "Refresh failed.");
       if (what === "titles") setTitleOpts(b.titles);
       if (what === "quote") setQuoteOpts(b.quotes);
+      if (what === "explainer") {
+        if (b.explainer) { setExplainer(b.explainer); setContentDirty(true); }
+        else setRefreshErr("No jargon or new technology in this quote that needs explaining.");
+      }
       if (what === "description") setDescOpt({ hook: b.hook, summary: b.summary });
       if (what === "takeaways") setTakeawayOpt(b.takeaways);
     } catch (e: any) {
@@ -413,18 +421,63 @@ export default function EpisodeStudioEditor({ params }: { params: { slug: string
             )}
 
             <h3 style={{ marginTop: 22 }}>Quote card</h3>
+            <p className="hint" style={{ marginTop: 0 }}>Real quotes only: &quot;Other real quotes&quot; picks from sentences the guest actually said, with the time it was said.</p>
+            {kit.extras?.quoteNeedsPick === "yes" && (
+              <div className="error-banner">The first draft&apos;s quote couldn&apos;t be matched to the transcript word for word. Click &quot;Other real quotes&quot; and pick one.</div>
+            )}
             <div className="field">
-              <label>Best quote <span className="sub">Word for word from the guest.</span></label>
+              <label>Quote <span className="sub">The guest&apos;s exact words.</span></label>
               <textarea value={quote} onChange={(e) => edit(setQuote)(e.target.value)} style={{ minHeight: 60 }} />
             </div>
-            <div className="field">
-              <label>Guest title (under the quote)</label>
-              <input type="text" value={guestTitle} onChange={(e) => edit(setGuestTitle)(e.target.value)} />
+            <div className="row2">
+              <div className="field">
+                <label>Said at <span className="sub">Shown on the card and in the caption, e.g. 23:41</span></label>
+                <input type="text" value={quoteTime} onChange={(e) => edit(setQuoteTime)(e.target.value)} placeholder="mm:ss" />
+              </div>
+              <div className="field">
+                <label>Guest title (under the quote)</label>
+                <input type="text" value={guestTitle} onChange={(e) => edit(setGuestTitle)(e.target.value)} />
+              </div>
             </div>
             <button type="button" onClick={() => refresh("quote")} disabled={!!refreshing} style={{ ...grey, ...small }}>
-              {refreshing === "quote" ? "Thinking…" : <IconLabel icon={Sparkles}>Other quotes</IconLabel>}
+              {refreshing === "quote" ? "Finding real quotes…" : <IconLabel icon={Sparkles}>Other real quotes</IconLabel>}
             </button>
-            {quoteOpts && <Suggestions items={quoteOpts} onPick={(q) => { edit(setQuote)(q); setQuoteOpts(null); }} onClose={() => setQuoteOpts(null)} />}
+            {quoteOpts && (
+              <Suggestions items={quoteOpts.map((q) => `${q.text}${q.time ? `  [${q.time}]` : ""}`)}
+                onPick={(t) => { const q = quoteOpts.find((x) => t.startsWith(x.text)); if (q) { edit(setQuote)(q.text); setQuoteTime(q.time || ""); setExplainer(null); } setQuoteOpts(null); }}
+                onClose={() => setQuoteOpts(null)} />
+            )}
+
+            <h3 style={{ marginTop: 22 }}>Explainer slide (optional)</h3>
+            <p className="hint" style={{ marginTop: 0 }}>
+              When the quote uses jargon (like &quot;MQ&quot;) or a new technology, a second slide explains it and the quote card says &quot;Swipe: what does MQ mean?&quot;.
+              {kit.extras?.explainerTerm && !explainer ? ` This quote mentions ${kit.extras.explainerTerm}.` : ""}
+            </p>
+            {explainer ? (
+              <div style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 16, background: "#FAFCFE" }}>
+                <div className="row2">
+                  <div className="field"><label>Term</label><input type="text" value={explainer.term} onChange={(e) => { setExplainer({ ...explainer, term: e.target.value }); setContentDirty(true); }} /></div>
+                  <div className="field"><label>Type</label>
+                    <select value={explainer.kind} onChange={(e) => { setExplainer({ ...explainer, kind: e.target.value as any }); setContentDirty(true); }}>
+                      <option value="abbr">Jargon / abbreviation (&quot;What does MQ mean?&quot;)</option>
+                      <option value="tech">New technology (&quot;See what the guest says about it&quot;)</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="field"><label>Meaning <span className="sub">{explainer.source === "general" ? "From general knowledge, not the episode: check it's right." : "Based on what was said in the episode."}</span></label>
+                  <textarea value={explainer.meaning} onChange={(e) => { setExplainer({ ...explainer, meaning: e.target.value }); setContentDirty(true); }} style={{ minHeight: 60 }} /></div>
+                <div className="field"><label>Example</label>
+                  <textarea value={explainer.example} onChange={(e) => { setExplainer({ ...explainer, example: e.target.value }); setContentDirty(true); }} style={{ minHeight: 60 }} /></div>
+                <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 400, fontSize: 14 }}>
+                  <input type="checkbox" style={{ width: "auto" }} checked={explainer.include !== false} onChange={(e) => { setExplainer({ ...explainer, include: e.target.checked }); setContentDirty(true); }} />
+                  Add this slide after the quote card
+                </label>
+              </div>
+            ) : null}
+            <button type="button" onClick={() => refresh("explainer", { quote })} disabled={!!refreshing} style={{ ...grey, ...small, marginTop: 10 }}>
+              {refreshing === "explainer" ? "Thinking…" : <IconLabel icon={Sparkles}>{explainer ? "Rewrite explainer" : "Suggest explainer slide"}</IconLabel>}
+            </button>
+            {explainer && <button type="button" onClick={() => { setExplainer(null); setContentDirty(true); }} style={{ ...grey, ...small, marginLeft: 8 }}>Remove explainer</button>}
 
             <h3 style={{ marginTop: 22 }}>Chapters</h3>
             <div className="field">

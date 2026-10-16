@@ -49,7 +49,7 @@ export default function EpisodePipelinePage() {
       if (res.ok) return body;
       const limited = res.status === 429 || /rate|limit|413|429|tokens per minute/i.test(String(body.error || ""));
       if (!limited || attempt === 3) throw new Error(body.error || `${label} failed.`);
-      for (let s = 65; s > 0; s -= 5) { setStatus(`Free AI limit reached — continuing "${label}" in ${s}s (keep this tab open)…`); await sleep(5000); }
+      for (let s = 65; s > 0; s -= 5) { setStatus(`Free AI limit reached, continuing "${label}" in ${s}s (keep this tab open)…`); await sleep(5000); }
     }
   }
 
@@ -58,7 +58,7 @@ export default function EpisodePipelinePage() {
     setResult(null);
     setSteps(STEP_LABELS.map(() => "waiting"));
     if (!ep) return setError("Choose the episode first.");
-    if (!epNumber.trim()) return setError("Add the episode number — the guest kit needs it.");
+    if (!epNumber.trim()) return setError("Add the episode number, the guest kit needs it.");
     if (!fileId && !upload) return setError("Choose a file from the drop folder, or upload the .srt.");
     setRunning(true);
     try {
@@ -72,7 +72,7 @@ export default function EpisodePipelinePage() {
       setStatus("Reading the Riverside file…");
       const file = upload || (await withRetry(() => fetch(`/api/drive/file?id=${encodeURIComponent(fileId)}`), "Read file"));
       const cues = parseCaptions(file.text);
-      if (!cues.length) throw new Error("No timestamps in that file — from Riverside, export the transcript as .srt, or .txt with speaker timestamps.");
+      if (!cues.length) throw new Error("No timestamps in that file, from Riverside, export the transcript as .srt, or .txt with speaker timestamps.");
       const blocks = buildBlocks(cues);
       const chunks = chunkBlocks(blocks);
       setStep(0, "done");
@@ -149,12 +149,12 @@ export default function EpisodePipelinePage() {
           <div className="field">
             <label>Episode</label>
             <select value={episodeId} onChange={(e) => setEpisodeId(e.target.value)} disabled={running}>
-              <option value="">— choose —</option>
+              <option value="">,  choose , </option>
               {episodes.filter((e) => e.stage !== "published").map((e) => (
                 <option key={e.id} value={e.id}>{e.guest_name}{e.episode_number ? ` · ${e.episode_number}` : ""}{e.guest_kit_slug ? " · has a kit already" : ""}</option>
               ))}
             </select>
-            {ep?.guest_kit_slug && <p className="sub" style={{ color: "#B54708" }}>This episode already has a guest kit — running again replaces it with a new draft.</p>}
+            {ep?.guest_kit_slug && <p className="sub" style={{ color: "#B54708" }}>This episode already has a guest kit, running again replaces it with a new draft.</p>}
           </div>
           <div className="field">
             <label>Episode number</label>
@@ -164,12 +164,12 @@ export default function EpisodePipelinePage() {
           <div className="field">
             <label>Riverside file</label>
             {driveNote ? (
-              <p className="sub">Drive drop folder: {driveNote} — you can upload the file below instead.</p>
+              <p className="sub">Drive drop folder: {driveNote}, you can upload the file below instead.</p>
             ) : files === null ? (
               <p className="sub">Checking the Drive drop folder…</p>
             ) : (
               <select value={fileId} onChange={(e) => { setFileId(e.target.value); setUpload(null); }} disabled={running}>
-                <option value="">— choose a file from the drop folder —</option>
+                <option value="">,  choose a file from the drop folder , </option>
                 {files.map((f) => (
                   <option key={f.id} value={f.id}>{f.name}{f.processed ? " (already processed)" : ""}</option>
                 ))}
@@ -203,7 +203,7 @@ export default function EpisodePipelinePage() {
             <h3 style={{ fontSize: 15 }}>Chapters (already in the show notes)</h3>
             {result.chapters.map((c) => <p key={c.start} style={{ margin: "2px 0", fontSize: 14 }}>{formatTime(c.start)} {c.title}</p>)}
             <h3 style={{ fontSize: 15, marginTop: 16 }}>Clip suggestions (saved in Production Assistant)</h3>
-            {result.clips.map((c, i) => <p key={i} style={{ margin: "2px 0", fontSize: 14 }}>{i + 1}. {formatTime(c.start)}–{formatTime(c.end)} — {c.title}</p>)}
+            {result.clips.map((c, i) => <p key={i} style={{ margin: "2px 0", fontSize: 14 }}>{i + 1}. {formatTime(c.start)}–{formatTime(c.end)}, {c.title}</p>)}
             <p style={{ marginTop: 14 }}><a href="/admin/assistant">→ Back to Production Assistant</a></p>
           </div>
         )}

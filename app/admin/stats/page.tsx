@@ -105,7 +105,7 @@ export default function StatsPage() {
         <div className="hero-inner">
           <p className="kicker"></p>
           <h1>Weekly Stats</h1>
-          <p>Spotify and Apple don&apos;t offer an official way to pull these automatically, so copy them in once a week (2 minutes) — Podforge tracks the trends.</p>
+          <p>Spotify and Apple don&apos;t offer an official way to pull these automatically, so copy them in once a week (2 minutes), Podforge tracks the trends.</p>
         </div>
       </header>
 
@@ -117,7 +117,7 @@ export default function StatsPage() {
             {summary.map((s) => (
               <div key={s.key} style={{ flex: 1, minWidth: 200, border: "1px solid var(--line)", borderRadius: 8, padding: 14 }}>
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: s.color }}>{s.name.toUpperCase()}</p>
-                <p style={{ margin: "4px 0 0", fontSize: 26, fontWeight: 700 }}>{s.last?.followers_total?.toLocaleString() ?? "—"}</p>
+                <p style={{ margin: "4px 0 0", fontSize: 26, fontWeight: 700 }}>{s.last?.followers_total?.toLocaleString() ?? ", "}</p>
                 <p style={{ margin: 0, fontSize: 13, color: "var(--ink-soft)" }}>
                   followers{s.gained !== null ? ` · ${s.gained >= 0 ? "+" : ""}${s.gained} since the week before` : ""}
                 </p>
@@ -145,7 +145,7 @@ export default function StatsPage() {
                   </div>
                 ))}
               </div>
-              <input type="text" placeholder="Notes (optional) — e.g. Mike Gilpin episode out Sunday" value={form[p.key]?.notes || ""}
+              <input type="text" placeholder="Notes (optional), e.g. Mike Gilpin episode out Sunday" value={form[p.key]?.notes || ""}
                 onChange={(e) => setForm({ ...form, [p.key]: { ...form[p.key], notes: e.target.value } })} style={{ marginTop: 8 }} />
             </div>
           ))}

@@ -11,7 +11,7 @@ export function BeingPrepared({ what }: { what: string }) {
   return (
     <div className="success">
       <h1>Your {what} is being prepared.</h1>
-      <p>We&apos;re giving it a final check — you&apos;ll get it very soon. Questions? Email tpandey@appliedframeworks.com.</p>
+      <p>We&apos;re giving it a final check, you&apos;ll get it very soon. Questions? Email tpandey@appliedframeworks.com.</p>
     </div>
   );
 }
@@ -20,7 +20,7 @@ export function BeingPrepared({ what }: { what: string }) {
 export function PreviewBanner({ editHref }: { editHref: string }) {
   return (
     <div style={{ background: "#FFF4E5", borderBottom: "1px solid #F5C77E", padding: "10px 24px", fontSize: 14, textAlign: "center" }}>
-      <strong>Team preview — DRAFT.</strong> The guest/creator sees a &quot;being prepared&quot; message until this is approved.{" "}
+      <strong>Team preview, DRAFT.</strong> The guest/creator sees a &quot;being prepared&quot; message until this is approved.{" "}
       <a href={editHref}>Review &amp; approve →</a>
     </div>
   );

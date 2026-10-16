@@ -112,3 +112,21 @@ test("long transcripts: cleaned, split into parts, nothing lost", () => {
   assert.equal(readingPlan("short text").singlePass, true);
   assert.equal(readingPlan(long).singlePass, false);
 });
+
+import { quoteCandidates, closestCandidate, abbreviationsIn } from "../lib/quotes";
+
+test("real quotes: only the guest's own sentences, with their time", () => {
+  const raw = [
+    "Luke Hohmann (00:00:05)", "Welcome Mike. Tell us about the analyst world and how vendors chase the MQ every single year.",
+    "Mike Gilpin (00:00:20)", "Um, the thing is, everybody wants to be in the top right of the MQ, but very few vendors actually ask what customers value. That's the real gap.",
+    "Mike Gilpin (00:01:40)", "Yeah. Pricing should follow the value metric your customer already tracks, not the one your finance team likes.",
+  ].join("\n");
+  const c = quoteCandidates(raw, "Mike Gilpin", "Luke Hohmann");
+  assert.ok(c.length >= 2);
+  assert.ok(c.every((q) => !/Welcome Mike/.test(q.text)), "host lines never become quotes");
+  assert.ok(c.every((q) => !/\bUm\b/.test(q.text)), "fillers trimmed");
+  assert.ok(c.some((q) => q.time === "00:20" || q.time?.startsWith("00:2")), "time from the speaker header");
+  const hit = closestCandidate("Pricing should follow the value metric your customer already tracks", c);
+  assert.ok(hit && hit.score > 0.6 && /value metric/.test(hit.cand.text));
+  assert.deepEqual(abbreviationsIn("Everybody wants the MQ, not the CEO"), ["MQ"]);
+});

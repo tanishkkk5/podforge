@@ -48,7 +48,7 @@ export default function TranscriptCheckPage() {
           <p>
             Paste a transcript to catch misspelled names automatically, and
             get the standard resource links ready to drop into the Resources
-            section — no retyping needed.
+            section, no retyping needed.
           </p>
         </div>
       </header>
@@ -75,7 +75,7 @@ export default function TranscriptCheckPage() {
           <div className="section">
             <h2>Possible name misspellings</h2>
             {flagged.length === 0 ? (
-              <p className="hint">No likely misspellings found — names look clean.</p>
+              <p className="hint">No likely misspellings found, names look clean.</p>
             ) : (
               <div>
                 {flagged.map((f, i) => (
@@ -89,7 +89,7 @@ export default function TranscriptCheckPage() {
                       fontSize: 14.5,
                     }}
                   >
-                    Found <strong>&quot;{f.found}&quot;</strong> — likely meant{" "}
+                    Found <strong>&quot;{f.found}&quot;</strong>, likely meant{" "}
                     <strong style={{ color: "var(--af-teal)" }}>&quot;{f.suggested}&quot;</strong>
                   </div>
                 ))}

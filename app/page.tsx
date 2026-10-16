@@ -105,7 +105,7 @@ function IntakeForm() {
     } catch (err: any) {
       setError(
         err.message ||
-          "Something went wrong sending your details — please try again, or email tpandey@appliedframeworks.com directly."
+          "Something went wrong sending your details, please try again, or email tpandey@appliedframeworks.com directly."
       );
       setSubmitting(false);
     }
@@ -126,10 +126,10 @@ function IntakeForm() {
               />
             </svg>
           </div>
-          <h1>{token ? "You're all set." : "Thanks — your details are in."}</h1>
+          <h1>{token ? "You're all set." : "Thanks, your details are in."}</h1>
           <p>
             {token
-              ? "Thanks for sending that over — we'll be in touch with recording details, and we'll take it from here on building your episode kit."
+              ? "Thanks for sending that over, we'll be in touch with recording details, and we'll take it from here on building your episode kit."
               : "We'll take it from here on building your episode kit."}
           </p>
         </div>
@@ -139,7 +139,7 @@ function IntakeForm() {
         {isTeam && (
           <div className="wrap" style={{ padding: "0 24px" }}>
             <div className="section" style={{ borderLeft: "4px solid #F59E0B", background: "#FFFBF2" }}>
-              <h2 style={{ marginTop: 0 }}>Team view — where this submission went</h2>
+              <h2 style={{ marginTop: 0 }}>Team view, where this submission went</h2>
               <p className="hint" style={{ marginTop: 0 }}>Only you see this box because you&apos;re logged in. Guests just see the message above.</p>
               <ul style={{ fontSize: 14, lineHeight: 1.8, paddingLeft: 18 }}>
                 <li><a href="/admin/submissions"><strong>New Submissions</strong> in Podforge →</a> (schedule it from there)</li>
@@ -172,7 +172,7 @@ function IntakeForm() {
         <p className="kicker">PROFIT STREAMS® PODCAST</p>
         <h1>Let&apos;s get your episode kit ready.</h1>
         <p>
-          A few details before we record — this lets us build your show notes,
+          A few details before we record, this lets us build your show notes,
           promotional clips, and links before the episode goes live, instead
           of chasing them down after.
         </p>
@@ -252,7 +252,7 @@ function IntakeForm() {
         <div className="section">
           <h2>Your bio</h2>
           <p className="hint">
-            Paste an existing bio if you have one — no need to write from scratch.
+            Paste an existing bio if you have one, no need to write from scratch.
           </p>
 
           <div className="field">
@@ -323,7 +323,7 @@ function IntakeForm() {
         <div className="section">
           <h2>Book or published work</h2>
           <p className="hint">
-            Add as many as apply — click &quot;Add another book&quot; for each one.
+            Add as many as apply, click &quot;Add another book&quot; for each one.
           </p>
 
           {books.map((book, i) => (
@@ -422,7 +422,7 @@ function IntakeForm() {
           </div>
 
           <div className="field">
-            <label htmlFor="topics">Topics to cover — or avoid</label>
+            <label htmlFor="topics">Topics to cover, or avoid</label>
             <textarea id="topics" name="topics" />
           </div>
 
@@ -441,12 +441,12 @@ function IntakeForm() {
           <h2>What happens after we record</h2>
           <ul style={{ fontSize: 15, lineHeight: 1.7, paddingLeft: 20, margin: "0 0 14px" }}>
             <li>Episodes go live on <strong>Saturdays at 7:30 AM ET</strong> on Apple Podcasts and Spotify.</li>
-            <li>The day before, you&apos;ll get your <strong>episode kit</strong>: quote cards, clips and ready-to-post captions — copy, tweak, post.</li>
+            <li>The day before, you&apos;ll get your <strong>episode kit</strong>: quote cards, clips and ready-to-post captions, copy, tweak, post.</li>
             <li><strong>The first 24 hours after launch matter most.</strong> A post from you on launch weekend is the single biggest boost for your episode&apos;s reach.</li>
           </ul>
           <label style={{ display: "flex", gap: 10, alignItems: "flex-start", fontWeight: 400, fontSize: 15 }}>
             <input type="checkbox" name="shareCommitment" value="yes" style={{ width: "auto", marginTop: 4 }} />
-            <span>Count me in — I&apos;ll share the episode within 24 hours of launch. <span className="sub">(Optional, and no pressure — it just helps us plan.)</span></span>
+            <span>Count me in, I&apos;ll share the episode within 24 hours of launch. <span className="sub">(Optional, and no pressure, it just helps us plan.)</span></span>
           </label>
         </div>
 

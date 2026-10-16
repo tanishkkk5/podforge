@@ -5,6 +5,8 @@ import { fixBrand } from "@/lib/showNotes";
 import { noDashes, POSTS, PostKey } from "@/lib/guestCaptions";
 import { BOLD_RULES, CURIOSITY_RULES, LENNY_SUMMARY_RULES } from "@/lib/styleGuide";
 import { stripMarks } from "@/lib/textStyle";
+import { explainQuote, pickQuotes } from "@/lib/quotePicker.server";
+import { fetchHeadshot, kitImageInput, renderKitImages } from "@/lib/kitImages.server";
 
 // Login required (middleware.ts). "✨ Refresh" buttons in the Episode Studio (decision 0016).
 // Returns NEW suggestions only; nothing is saved until a person picks one and clicks Save.
@@ -45,7 +47,7 @@ ${(kit.takeaways || []).map((t: string, i: number) => `${i + 1}. ${stripMarks(t)
     const needsTranscript = ["titles", "takeaways", "quote", "description"].includes(what);
     if (needsTranscript && !kit.transcript && !kit.extras?.digest) {
       // Kits made before the Studio don't have their transcript stored: work from the summary + takeaways
-      if (what === "takeaways" || what === "quote") {
+      if (what === "takeaways" || what === "quote" || what === "quote_card") {
         return NextResponse.json({ error: "This kit was made before transcripts were saved. Re-run Step 1 with the transcript to refresh takeaways or the quote." }, { status: 400 });
       }
     }
@@ -96,18 +98,31 @@ Respond with JSON only: {"takeaways": ["...", ... 10 items]}`,
       return NextResponse.json({ takeaways: t });
     }
 
+    // Real quotes only (decision 0020): candidates are the guest's own sentences; the AI only picks numbers.
+    const used: string[] = [...(Array.isArray(kit.extras?.usedQuotes) ? kit.extras.usedQuotes : []), kit.best_quote].filter(Boolean);
     if (what === "quote") {
-      const out = await groqJson({
-        prompt: `Profit Streams® Podcast. Guest: ${kit.guest_name}.
-${source}
-
-Pick 3 short, self-contained, quotable lines said by the GUEST (not the host). Each must be copied word for word from the transcript (you may trim filler words like "um", "you know") and be under 200 characters. Avoid this one: "${kit.best_quote}".
-Respond with JSON only: {"quotes": ["...", "...", "..."]}`,
-        maxTokens: 800, temperature: 0.7,
-      });
-      const quotes = (Array.isArray(out.quotes) ? out.quotes : []).map((q: unknown) => fixBrand(String(q || "").trim()).replace(/^["“]|["”]$/g, "")).filter((q: string) => q && q.length <= 220).slice(0, 3);
-      if (!quotes.length) throw new Error("The AI didn't return quotes, please click again.");
+      const quotes = await pickQuotes(kit, used, 3);
       return NextResponse.json({ quotes });
+    }
+
+    if (what === "explainer") {
+      const explainer = await explainQuote(kit, String(body.quote || kit.best_quote || ""));
+      return NextResponse.json({ explainer });
+    }
+
+    // "New quote + image" on the guest kit preview: new real quote, its explainer, new images, default caption.
+    if (what === "quote_card") {
+      if (kit.status === "approved") return NextResponse.json({ error: "This kit is approved, so it's final. Move it back to draft to change it." }, { status: 409 });
+      const [q] = await pickQuotes(kit, used, 1);
+      const explainer = await explainQuote(kit, q.text).catch(() => null);
+      const extras = { ...(kit.extras || {}), quoteTime: q.time || "", explainer, usedQuotes: Array.from(new Set(used)).slice(-40) };
+      const captions = { ...(kit.captions || {}) }; delete captions.quote;
+      const next = { ...kit, best_quote: q.text, extras, captions };
+      const image_urls = await renderKitImages(kitImageInput(next), await fetchHeadshot(kit.headshot_url));
+      const { data, error: upErr } = await supabase.from("guest_kits")
+        .update({ best_quote: q.text, extras, captions, image_urls, updated_at: new Date().toISOString() }).eq("slug", kit.slug).select().single();
+      if (upErr) throw new Error(upErr.message);
+      return NextResponse.json({ kit: data });
     }
 
     if (what === "caption") {

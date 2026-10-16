@@ -61,7 +61,7 @@ function Answer({ label, value }: { label: string; value?: string | null }) {
           <p style={{ margin: 0, fontSize: 14, whiteSpace: "pre-wrap" }}>{v}</p>
         )
       ) : (
-        <p style={{ margin: 0, fontSize: 14, color: "#9AA4AF" }}>— left blank —</p>
+        <p style={{ margin: 0, fontSize: 14, color: "#9AA4AF" }}>,  left blank , </p>
       )}
     </div>
   );
@@ -110,7 +110,7 @@ function FullResponse({ s }: { s: Submission }) {
           Books
         </p>
         {books.length === 0 ? (
-          <p style={{ margin: 0, fontSize: 14, color: "#9AA4AF" }}>— none —</p>
+          <p style={{ margin: 0, fontSize: 14, color: "#9AA4AF" }}>,  none , </p>
         ) : (
           books.map((b, i) => (
             <div key={i} style={{ fontSize: 14, marginBottom: 6 }}>
@@ -133,7 +133,7 @@ function FullResponse({ s }: { s: Submission }) {
       <Answer label="Resources they want linked" value={s.resources} />
       <Answer label="Topics they'd like to cover" value={s.topics} />
       <Answer label="How they plan to promote the episode" value={s.promo} />
-      <Answer label="Will share within 24 hours of launch?" value={s.share_commitment ? "✅ Yes — they ticked the launch-day box" : "Not ticked (optional)"} />
+      <Answer label="Will share within 24 hours of launch?" value={s.share_commitment ? "✅ Yes, they ticked the launch-day box" : "Not ticked (optional)"} />
 
       <button type="button"
         onClick={() => { navigator.clipboard.writeText(responseAsText(s)); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
@@ -263,11 +263,11 @@ export default function SubmissionsPage() {
                     <p style={{ margin: "0 0 10px", fontSize: 13 }}>
                       {s.booked_at ? (
                         <span style={{ background: "#ECFDF3", color: "#0E8A50", fontWeight: 700, padding: "3px 10px", borderRadius: 999 }}>
-                          📅 Booked a time with {hostByKey(s.host).name} on {formatDate(s.booked_at)} — check {hostByKey(s.host).firstName}&apos;s calendar for the slot
+                          📅 Booked a time with {hostByKey(s.host).name} on {formatDate(s.booked_at)}, check {hostByKey(s.host).firstName}&apos;s calendar for the slot
                         </span>
                       ) : (
                         <span style={{ background: "#FFF4E5", color: "#B54708", fontWeight: 700, padding: "3px 10px", borderRadius: 999 }}>
-                          Not booked yet with {hostByKey(s.host).name} — follow up if it stays this way
+                          Not booked yet with {hostByKey(s.host).name}, follow up if it stays this way
                         </span>
                       )}
                     </p>

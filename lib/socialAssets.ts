@@ -217,44 +217,112 @@ export async function makeSummaryCard(hookLine: string, episodeTitle: string, ep
   return canvas.toBuffer("image/png");
 }
 
+/** Lines that fit `maxW` at the largest size that keeps the block under `maxH`. */
+function fitText(ctx: any, text: string, font: string, maxW: number, maxH: number, start: number, min: number, lineGap = 1.25) {
+  for (let size = start; size >= min; size -= 2) {
+    ctx.font = `${size}px ${font}`;
+    const lines = wrapText(ctx, text, maxW);
+    if (lines.length * size * lineGap <= maxH) return { size, lines, lineH: size * lineGap };
+  }
+  ctx.font = `${min}px ${font}`;
+  return { size: min, lines: wrapText(ctx, text, maxW), lineH: min * lineGap };
+}
+
+/** Calm, minimal background for quote + explainer cards (decision 0020). */
+async function minimalCanvas() {
+  ensureFonts();
+  const canvas = createCanvas(W, H);
+  const ctx = canvas.getContext("2d");
+  const g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, "#013A6B");
+  g.addColorStop(1, "#012447");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  return { canvas, ctx };
+}
+
+function smallBrand(ctx: any, epNumber: string) {
+  ctx.font = "22px InterBold";
+  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  ctx.fillText(`EP-${epNumber}  ·  PROFIT STREAMS® PODCAST`, 90, 110);
+}
+
+function pill(ctx: any, text: string, x: number, y: number, bg: string, fg: string, size = 26) {
+  ctx.font = `${size}px InterBold`;
+  const w = ctx.measureText(text).width + size * 1.4;
+  const h = size * 1.9;
+  ctx.fillStyle = bg;
+  ctx.beginPath();
+  (ctx as any).roundRect(x, y, w, h, h / 2);
+  ctx.fill();
+  ctx.fillStyle = fg;
+  ctx.fillText(text, x + size * 0.7, y + h * 0.66);
+  return w;
+}
+
+/**
+ * Minimal quote card: the guest's REAL words, their name, and the moment it was said (decision 0020).
+ * `swipeTerm` adds "Swipe: what is MQ?" when an explainer slide follows.
+ */
 export async function makeQuoteCard(
   quote: string, guestName: string, guestTitle: string, episodeTitle: string, epNumber: string,
-  headshotBuffer: Buffer | null = null
+  headshotBuffer: Buffer | null = null, time: string | null = null, swipe: string | null = null
 ): Promise<Buffer> {
-  const { canvas, ctx } = await newCanvas();
-  await kickerLabel(ctx, `EP-${epNumber} · PROFIT STREAMS® PODCAST`);
-  if (headshotBuffer) {
-    await drawHeadshot(ctx, headshotBuffer, W - 220, H - 220, 140);
-  }
-
-  ctx.font = "120px InterBold";
+  const { canvas, ctx } = await minimalCanvas();
+  smallBrand(ctx, epNumber);
+  // big quote mark
+  ctx.font = "200px InterBold";
+  ctx.fillStyle = BRIGHT_BLUE;
+  ctx.fillText("\u201C", 78, 330);
+  const fit = fitText(ctx, quote, "InterBold", 900, 470, 64, 36, 1.22);
+  let y = 330 + fit.size * 0.2;
   ctx.fillStyle = WHITE;
-  ctx.fillText("\u201C", 65, 280);
-
-  ctx.font = "48px InterBold";
-  const wrapped = wrapText(ctx, quote, 920);
-  let y = 340;
-  for (const line of wrapped) {
-    ctx.fillText(line, 70, y);
-    y += 62;
+  ctx.font = `${fit.size}px InterBold`;
+  for (const line of fit.lines) { ctx.fillText(line, 90, y); y += fit.lineH; }
+  // who + when
+  const baseY = H - 170;
+  if (headshotBuffer) await drawHeadshot(ctx, headshotBuffer, 90, baseY - 12, 92);
+  const tx = headshotBuffer ? 210 : 90;
+  ctx.font = "34px InterBold"; ctx.fillStyle = WHITE; ctx.fillText(guestName, tx, baseY + 22);
+  if (guestTitle) { ctx.font = "24px InterReg"; ctx.fillStyle = GRAY_SOFT; ctx.fillText(guestTitle.slice(0, 60), tx, baseY + 60); }
+  if (time) pill(ctx, `\u25B6  ${time}`, W - 90 - 160, baseY - 6, "rgba(0,161,234,0.22)", "#9ED9F7", 26);
+  if (swipe) {
+    ctx.font = "24px InterBold"; ctx.fillStyle = "#9ED9F7";
+    const t = `${swipe}  \u2192`; ctx.fillText(t, W - 90 - ctx.measureText(t).width, H - 60);
   }
+  return canvas.toBuffer("image/png");
+}
 
+/** Slide 2 after the quote: what the jargon or technology means, with an example (decision 0020). */
+export async function makeExplainerCard(
+  term: string, kind: "abbr" | "tech", meaning: string, example: string, guestName: string, epNumber: string, time: string | null
+): Promise<Buffer> {
+  const { canvas, ctx } = await minimalCanvas();
+  smallBrand(ctx, epNumber);
+  ctx.font = "26px InterBold"; ctx.fillStyle = "#9ED9F7";
+  ctx.fillText(kind === "tech" ? "NEW TECH, EXPLAINED" : "JARGON, EXPLAINED", 90, 230);
+  const head = kind === "tech" ? term : `What is ${term}?`;
+  const hf = fitText(ctx, head, "InterBold", 900, 200, 96, 52, 1.1);
+  let y = 230 + hf.size * 1.15;
+  ctx.fillStyle = WHITE; ctx.font = `${hf.size}px InterBold`;
+  for (const l of hf.lines) { ctx.fillText(l, 90, y); y += hf.lineH; }
   y += 20;
-  ctx.strokeStyle = WHITE;
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(70, y);
-  ctx.lineTo(270, y);
-  ctx.stroke();
-
-  ctx.font = "32px InterBold";
-  ctx.fillStyle = WHITE;
-  ctx.fillText(guestName, 70, y + 45);
-  ctx.font = "24px InterReg";
-  ctx.fillStyle = GRAY_SOFT;
-  ctx.fillText(guestTitle, 70, y + 80);
-
-  footer(ctx, episodeTitle);
+  const mf = fitText(ctx, meaning, "InterReg", 900, 220, 40, 28, 1.3);
+  ctx.fillStyle = WHITE; ctx.font = `${mf.size}px InterReg`;
+  for (const l of mf.lines) { ctx.fillText(l, 90, y); y += mf.lineH; }
+  if (example) {
+    y += 30;
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    const ef = fitText(ctx, example, "InterReg", 840, 200, 30, 24, 1.35);
+    const boxH = ef.lines.length * ef.lineH + 84;
+    ctx.beginPath(); (ctx as any).roundRect(90, y, 900, boxH, 22); ctx.fill();
+    ctx.font = "22px InterBold"; ctx.fillStyle = "#9ED9F7"; ctx.fillText("EXAMPLE", 120, y + 44);
+    ctx.fillStyle = GRAY_SOFT; ctx.font = `${ef.size}px InterReg`;
+    let ey = y + 44 + ef.size * 1.4;
+    for (const l of ef.lines) { ctx.fillText(l, 120, ey); ey += ef.lineH; }
+  }
+  ctx.font = "24px InterReg"; ctx.fillStyle = "rgba(255,255,255,0.6)";
+  ctx.fillText(`${kind === "tech" ? "See what" : "As used by"} ${guestName}${time ? ` at ${time}` : ""}${kind === "tech" ? " has to say about it in the episode" : " in the episode"}`.slice(0, 80), 90, H - 60);
   return canvas.toBuffer("image/png");
 }
 

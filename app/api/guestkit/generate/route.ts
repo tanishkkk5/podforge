@@ -4,6 +4,8 @@ import { extractEpisodeContent } from "@/lib/groq";
 import { detectFrameworks, frameworkResources } from "@/lib/frameworks";
 import { fixTranscript } from "@/lib/transcriptFixes";
 import { fetchHeadshot, renderKitImages } from "@/lib/kitImages.server";
+import { candidatesFor, verifyQuote } from "@/lib/quotePicker.server";
+import { abbreviationsIn } from "@/lib/quotes";
 import { noDashes } from "@/lib/guestCaptions";
 
 // Login required (middleware.ts). Step 1 of the Episode Studio (decision 0016):
@@ -61,15 +63,27 @@ export async function POST(req: NextRequest) {
     const guestTitle = get("guestTitle") || content.guestTitle;
 
     // 2. Images (title, big idea, quote, 10 takeaways, chapters)
+    // Real quotes only (decision 0020): match the AI's pick to the guest's actual words + time.
+    const quoteCheck = { transcript, guest_name: guestName, host_name: hostName };
+    const real = verifyQuote(quoteCheck, content.bestQuote);
+    const hasCandidates = candidatesFor(quoteCheck).length > 0;
+    if (real) content.bestQuote = real.text;
+    const quoteTime = real?.time || "";
+
     const image_urls = await renderKitImages(
       { slug, episode_number: episodeNumber, guest_name: guestName, guest_title: guestTitle, host_name: hostName,
-        title: content.title, hook: content.hook, best_quote: content.bestQuote, takeaways: content.takeaways, chapters },
+        title: content.title, hook: content.hook, best_quote: content.bestQuote, takeaways: content.takeaways, chapters, quote_time: quoteTime },
       headshot
     );
 
     // 3. Keep links already typed on an earlier run; fill guest links from the intake form
     const { data: existing } = await supabase.from("guest_kits").select("extras").eq("slug", slug).maybeSingle();
-    const extras: Record<string, string> = { ...(existing?.extras || {}) };
+    const extras: Record<string, any> = { ...(existing?.extras || {}) };
+    extras.quoteTime = quoteTime;
+    extras.quoteNeedsPick = !real && hasCandidates ? "yes" : "";
+    extras.explainerTerm = abbreviationsIn(content.bestQuote)[0] || "";
+    delete extras.explainer;
+    extras.usedQuotes = [];
     if (!extras.guestLinkedin && get("guestLinkedin")) extras.guestLinkedin = get("guestLinkedin");
     if (!extras.guestOtherLinks && get("guestOtherLinks")) extras.guestOtherLinks = get("guestOtherLinks");
     if (digest) extras.digest = digest.slice(0, 20000); else delete extras.digest;

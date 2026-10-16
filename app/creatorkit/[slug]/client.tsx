@@ -112,7 +112,7 @@ export default function CreatorKitClient({ kit }: { kit: any }) {
       <header className="hero">
         <div className="hero-inner">
           <p className="kicker">PROFIT STREAMS® PODCAST · CONTENT KIT</p>
-          <h1>Hi {first} — a few clips picked for your audience</h1>
+          <h1>Hi {first}, a few clips picked for your audience</h1>
           <p>
             {kit.topics?.length ? `Chosen for what you post about: ${kit.topics.join(", ")}. ` : ""}
             Each one comes with ready-to-post captions you can copy, edit, or rewrite in your own voice.
@@ -124,7 +124,7 @@ export default function CreatorKitClient({ kit }: { kit: any }) {
         <div className="section" style={{ background: "#F5FAFE" }}>
           <h2 style={{ marginTop: 0 }}>How to use this kit</h2>
           <p style={{ fontSize: 14.5, margin: "0 0 6px" }}>
-            You&apos;re welcome to post any of these clips on your own channels — <strong>free to share with credit</strong>.
+            You&apos;re welcome to post any of these clips on your own channels, <strong>free to share with credit</strong>.
             The credit line and episode link are already in each caption; please keep them in.
           </p>
           <p style={{ fontSize: 14.5, margin: 0 }}>

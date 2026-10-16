@@ -5,7 +5,7 @@
  * The episode thumbnail is NOT made here any more: it's made in Canva (decision 0016).
  */
 import { getSupabaseAdmin } from "./supabase";
-import { makeTitleCard, makeSummaryCard, makeQuoteCard, makeTakeawaysCarousel, makeChaptersCards } from "./socialAssets";
+import { makeTitleCard, makeSummaryCard, makeQuoteCard, makeTakeawaysCarousel, makeChaptersCards, makeExplainerCard } from "./socialAssets";
 import { fixBrand } from "./showNotes";
 import { stripMarks } from "./textStyle";
 
@@ -20,6 +20,8 @@ export interface KitImageInput {
   best_quote: string;
   takeaways: string[];
   chapters: { time: string; title: string }[];
+  quote_time?: string | null;
+  explainer?: { term: string; kind: "abbr" | "tech"; meaning: string; example: string; include?: boolean } | null;
 }
 
 export interface KitImageUrls {
@@ -28,6 +30,7 @@ export interface KitImageUrls {
   quote_card: string;
   takeaways: string[];
   chapters: string[];
+  explainer_card?: string;
 }
 
 /** Downloads a headshot (intake form or upload) as a Buffer; null if it can't be read. */
@@ -45,12 +48,25 @@ export async function fetchHeadshot(url: string | null | undefined): Promise<Buf
   }
 }
 
+/** Everything the images need, from a guest_kits row (quote time + explainer live in extras). */
+export function kitImageInput(kit: any): KitImageInput {
+  return {
+    slug: kit.slug, episode_number: kit.episode_number, guest_name: kit.guest_name, guest_title: kit.guest_title || "",
+    host_name: kit.host_name, title: kit.title, hook: kit.hook || "", best_quote: kit.best_quote || "",
+    takeaways: kit.takeaways || [], chapters: kit.chapters || [],
+    quote_time: kit.extras?.quoteTime || null, explainer: kit.extras?.explainer || null,
+  };
+}
+
 export async function renderKitImages(k: KitImageInput, headshot: Buffer | null): Promise<KitImageUrls> {
   const ep = String(k.episode_number || "").replace(/^ep-?/i, "");
   const title = fixBrand(stripMarks(k.title));
   const titleBuf = await makeTitleCard(title, k.guest_name, k.host_name, ep);
   const summaryBuf = await makeSummaryCard(fixBrand(stripMarks(k.hook)), title, ep);
-  const quoteBuf = await makeQuoteCard(fixBrand(stripMarks(k.best_quote)), k.guest_name, k.guest_title || "", title, ep, headshot);
+  const ex = k.explainer && k.explainer.include !== false && k.explainer.term ? k.explainer : null;
+  const swipe = ex ? (ex.kind === "tech" ? `Swipe: what is ${ex.term}?` : `Swipe: what does ${ex.term} mean?`) : null;
+  const quoteBuf = await makeQuoteCard(fixBrand(stripMarks(k.best_quote)), k.guest_name, k.guest_title || "", title, ep, headshot, k.quote_time || null, swipe);
+  const explainerBuf = ex ? await makeExplainerCard(ex.term, ex.kind, ex.meaning, ex.example, k.guest_name, ep, k.quote_time || null) : null;
   const takeawayBufs = await makeTakeawaysCarousel(k.takeaways.map(fixBrand), title, ep);
   const chapterBufs = k.chapters?.length ? await makeChaptersCards(k.chapters, title, ep) : [];
 
@@ -74,6 +90,7 @@ export async function renderKitImages(k: KitImageInput, headshot: Buffer | null)
     title_card: await upload(titleBuf, "title_card"),
     summary_card: await upload(summaryBuf, "summary_card"),
     quote_card: await upload(quoteBuf, "quote_card"),
+    ...(explainerBuf ? { explainer_card: await upload(explainerBuf, "explainer_card") } : {}),
     takeaways: await Promise.all(takeawayBufs.map((b, i) => upload(b, `takeaway_${i + 1}`))),
     chapters: await Promise.all(chapterBufs.map((b, i) => upload(b, `chapters_${i + 1}`))),
   };

@@ -86,7 +86,7 @@ export default function GuestKitsListPage() {
                     fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, verticalAlign: "middle",
                     background: k.status === "approved" ? "#ECFDF3" : "#FFF4E5", color: k.status === "approved" ? "#0E8A50" : "#B54708",
                   }}>
-                    {k.status === "approved" ? "APPROVED" : "DRAFT — needs review"}
+                    {k.status === "approved" ? "APPROVED" : "DRAFT, needs review"}
                   </span>
                 </p>
                 {(k.topics || []).length > 0 && (

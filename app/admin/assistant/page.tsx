@@ -57,7 +57,7 @@ export default function ProductionAssistantPage() {
       let body: any = {};
       try { body = raw ? JSON.parse(raw) : {}; } catch { body = {}; }
       if (!res.ok && !body.error) {
-        throw new Error(res.status === 504 ? "That took too long and timed out — please try again." : `Something went wrong (error ${res.status}) — please try again.`);
+        throw new Error(res.status === 504 ? "That took too long and timed out, please try again." : `Something went wrong (error ${res.status}), please try again.`);
       }
       if (!res.ok) throw new Error(body.error || "Something went wrong.");
       await load();
@@ -79,7 +79,7 @@ export default function ProductionAssistantPage() {
 
   const pendingDrafts = useMemo(() => (data?.drafts || []).filter((d) => d.status === "draft"), [data]);
   const suggestions = useMemo(() => (data?.suggestions || []).filter((s) => !hidden.has(s.key)), [data, hidden]);
-  const episodeName = (id: string | null) => (id ? data?.episodes.find((e) => e.id === id)?.guest_name || "—" : "a new guest");
+  const episodeName = (id: string | null) => (id ? data?.episodes.find((e) => e.id === id)?.guest_name || ", " : "a new guest");
   const needsYou = suggestions.length + pendingDrafts.length;
 
   return (
@@ -90,7 +90,7 @@ export default function ProductionAssistantPage() {
           <h1>✨ Production Assistant</h1>
           <p>
             Tracks every episode from intake to publish, notices what&apos;s next, and drafts it for you.
-            It never acts on its own — you approve every step.
+            It never acts on its own, you approve every step.
           </p>
         </div>
       </header>
@@ -141,7 +141,7 @@ export default function ProductionAssistantPage() {
                       <textarea value={edits[d.id] ?? d.content} onChange={(e) => setEdits({ ...edits, [d.id]: e.target.value })}
                         style={{ minHeight: 220, fontSize: 13.5, lineHeight: 1.55 }} />
                       <p className="hint" style={{ margin: "6px 0 8px" }}>
-                        Read it, fix anything that&apos;s off, then approve. Approving copies it so you can paste it into an email draft or send it to the host — Podforge doesn&apos;t send anything.
+                        Read it, fix anything that&apos;s off, then approve. Approving copies it so you can paste it into an email draft or send it to the host, Podforge doesn&apos;t send anything.
                       </p>
                       <div style={{ display: "flex", gap: 8 }}>
                         <button type="button" disabled={busy === `approve:${d.id}` || busy === `dismiss:${d.id}` || !reviewer.trim()}
@@ -169,7 +169,7 @@ export default function ProductionAssistantPage() {
               <h2 style={{ marginTop: 0 }}>Invite a new guest</h2>
               <p className="hint" style={{ marginTop: 0 }}>
                 The Outreach Drafter writes Luke&apos;s invitation from the standard template, adding one personal line
-                based only on your notes. It appears above for review — send it from Luke&apos;s account yourself.
+                based only on your notes. It appears above for review, send it from Luke&apos;s account yourself.
               </p>
               <div className="field">
                 <label>Their name</label>

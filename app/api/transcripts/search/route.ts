@@ -21,7 +21,11 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error("Search failed:", error.message);
-      return NextResponse.json({ error: "Search failed." }, { status: 500 });
+      // Show the real reason (e.g. migration_v4 not run: function match_transcript_chunks missing)
+      const hint = /match_transcript_chunks|function|does not exist|schema cache/i.test(error.message)
+        ? " Run supabase/migration_v4.sql in Supabase → SQL Editor."
+        : "";
+      return NextResponse.json({ error: `Search failed: ${error.message}.${hint}` }, { status: 500 });
     }
 
     return NextResponse.json({ matches: data });

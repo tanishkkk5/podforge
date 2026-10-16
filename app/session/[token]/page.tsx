@@ -119,7 +119,7 @@ export default function SessionPage({ params }: { params: { token: string } }) {
 
         {session.status === "reschedule_requested" && !rescheduleSent && (
           <p style={{ marginTop: 16, color: "#B98B2E" }}>
-            We&apos;ve already received your reschedule request — someone will follow up
+            We&apos;ve already received your reschedule request, someone will follow up
             with a new time shortly.
           </p>
         )}
@@ -129,7 +129,7 @@ export default function SessionPage({ params }: { params: { token: string } }) {
         <div className="submit-row" style={{ flexDirection: "column", alignItems: "stretch", gap: 12 }}>
           <a href={`/?token=${params.token}`}>
             <button type="button" style={{ width: "100%" }}>
-              This time works — fill out my guest info
+              This time works, fill out my guest info
             </button>
           </a>
           <button
@@ -152,7 +152,7 @@ export default function SessionPage({ params }: { params: { token: string } }) {
           <div className="field">
             <label htmlFor="note">
               Let us know what works better
-              <span className="sub">optional — a day/time range is helpful</span>
+              <span className="sub">optional, a day/time range is helpful</span>
             </label>
             <textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
@@ -164,7 +164,7 @@ export default function SessionPage({ params }: { params: { token: string } }) {
 
       {rescheduleSent && (
         <div className="success" style={{ padding: "40px 0" }}>
-          <p>Got it — we&apos;ll follow up with a new time shortly.</p>
+          <p>Got it, we&apos;ll follow up with a new time shortly.</p>
         </div>
       )}
 

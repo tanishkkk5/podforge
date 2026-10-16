@@ -167,7 +167,7 @@ export default function AdminPage() {
 
       {link && (
         <div className="section" style={{ borderTop: "2px solid var(--af-teal)" }}>
-          <h2>✅ Session created — send this to the guest</h2>
+          <h2>✅ Session created, send this to the guest</h2>
           {savedISO && (
             <p style={{ fontSize: 14, marginTop: 0 }}>
               Recording: <strong>{formatInZone(savedISO, tz)}</strong> ({formatInZone(savedISO, "Asia/Kolkata")}). The guest sees it in their own time zone.
@@ -192,7 +192,7 @@ export default function AdminPage() {
               `To help us prepare your show notes and promotion, could you fill in this short form (about 5 minutes) with your bio, headshot and links?`,
               link,
               ``,
-              riverside.trim() ? `We'll record on Riverside: ${riverside.trim()}` : `We'll record on Riverside — the studio link is in the calendar invite.`,
+              riverside.trim() ? `We'll record on Riverside: ${riverside.trim()}` : `We'll record on Riverside, the studio link is in the calendar invite.`,
               `A quiet room, headphones and a stable connection work best.`,
               ``,
               `Thanks!`,

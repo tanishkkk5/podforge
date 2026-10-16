@@ -41,7 +41,7 @@ export default function UploadTranscriptPage() {
           <h1>Add to the Transcript Archive</h1>
           <p>
             Paste a transcript (main episode or a Magic Clip) to make it
-            searchable across the whole archive. Free to run — no cost per
+            searchable across the whole archive. Free to run, no cost per
             upload.
           </p>
         </div>

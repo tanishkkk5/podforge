@@ -71,7 +71,7 @@ export default function HostScheduler({
           <>
             <h2 style={{ marginTop: 0 }}>One last step: pick your recording time with {host.firstName}</h2>
             <p className="hint" style={{ marginTop: 0 }}>
-              Choose any open slot below — your name and email are already filled in.
+              Choose any open slot below, your name and email are already filled in.
             </p>
             {isTeam && (
               <p style={{ fontSize: 13, background: "#FFF4E5", padding: "8px 12px", borderRadius: 6 }}>

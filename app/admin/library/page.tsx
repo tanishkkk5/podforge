@@ -138,7 +138,7 @@ export default function ContentLibraryPage() {
       if (!r.ok) return { ok: true, note: `Saved, but tagging failed: ${rb.error}` };
       rateLimited = rb.rateLimited;
     }
-    return rateLimited ? { ok: true, note: "Saved — tagging still waiting on Groq, use Retry tagging later." } : { ok: true, note: fixedNote };
+    return rateLimited ? { ok: true, note: "Saved, tagging still waiting on Groq, use Retry tagging later." } : { ok: true, note: fixedNote };
   }
 
   async function handleSingle(e: React.FormEvent) {
@@ -147,7 +147,7 @@ export default function ContentLibraryPage() {
     setSaveMsg(null);
     const r = await saveOne(
       { kind: fKind, title: fTitle, episode_label: fEp, guest_name: fGuest, parent_id: fParent, video_url: fVideo, transcript: fTranscript },
-      (s) => setSaveMsg(`Groq free-tier limit hit — retrying tagging in ${s}s…`)
+      (s) => setSaveMsg(`Groq free-tier limit hit, retrying tagging in ${s}s…`)
     );
     setSaving(false);
     if (!r.ok) { setSaveMsg(`❌ ${r.note}`); return; }
@@ -175,7 +175,7 @@ export default function ContentLibraryPage() {
       const transcript = cleanTranscriptFile(await f.text());
       const r = await saveOne(
         { kind: fKind, title: titleFromFile(f.name), episode_label: fEp, guest_name: fGuest, parent_id: fParent, transcript },
-        (s) => setRow({ state: "rate-wait", note: `Groq limit — retrying in ${s}s` })
+        (s) => setRow({ state: "rate-wait", note: `Groq limit, retrying in ${s}s` })
       );
       setRow({ state: r.ok ? "done" : "error", note: r.note });
     }
@@ -199,7 +199,7 @@ export default function ContentLibraryPage() {
     const res = await fetch(`/api/library/${id}/tag`, { method: "POST" });
     const body = await res.json();
     if (!res.ok) setError(body.error || "Tagging failed.");
-    else if (body.rateLimited) setError("Groq free-tier limit reached — wait about a minute, then press Retry tagging again.");
+    else if (body.rateLimited) setError("Groq free-tier limit reached, wait about a minute, then press Retry tagging again.");
     load();
   }
 
@@ -275,7 +275,7 @@ export default function ContentLibraryPage() {
             <div className="field">
               <label>Clip of which episode? (optional)</label>
               <select value={fParent} onChange={(e) => setFParent(e.target.value)}>
-                <option value="">— not linked —</option>
+                <option value="">,  not linked , </option>
                 {allEpisodes.map((ep) => (
                   <option key={ep.id} value={ep.id}>{[ep.episode_label, ep.title].filter(Boolean).join(" · ")}</option>
                 ))}
@@ -313,7 +313,7 @@ export default function ContentLibraryPage() {
                 <p className="sub">
                   Select many .txt / .srt / .vtt files at once. Each file becomes one item, titled from its file name.
                   The episode number, guest and type above apply to all of them. Add Drive video links afterwards in the list below.
-                  Long episodes are tagged about one per minute (Groq free-tier limit) — just leave this tab open.
+                  Long episodes are tagged about one per minute (Groq free-tier limit), just leave this tab open.
                 </p>
                 <input type="file" multiple accept=".txt,.srt,.vtt,.md" disabled={bulkRunning} onChange={(e) => handleBulk(e.target.files)} />
               </div>
@@ -342,12 +342,12 @@ export default function ContentLibraryPage() {
               <strong>AI Tagger scorecard{topic || kind || q ? " (this view)" : ""}:</strong> a person corrected the topics on{" "}
               {score.fixed} of {score.total} items ({score.pct}%).{" "}
               {score.total < 10
-                ? "Too few items yet to judge — keep checking every tag."
+                ? "Too few items yet to judge, keep checking every tag."
                 : score.pct <= 10
-                ? "Low — the Tagger is earning trust."
+                ? "Low, the Tagger is earning trust."
                 : score.pct <= 30
-                ? "Moderate — keep checking tags."
-                : "High — its instructions need improving."}
+                ? "Moderate, keep checking tags."
+                : "High, its instructions need improving."}
             </p>
           )}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>

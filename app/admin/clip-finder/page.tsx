@@ -32,7 +32,7 @@ export default function ClipFinderPage() {
     setClips(null);
     setSaved(false);
     if (!cues.length) {
-      setError("No timestamps found. From Riverside, export the transcript as .srt, or as .txt WITH speaker timestamps — the Clip Finder needs the times.");
+      setError("No timestamps found. From Riverside, export the transcript as .srt, or as .txt WITH speaker timestamps, the Clip Finder needs the times.");
       return;
     }
     const chunks = chunkBlocks(buildBlocks(cues));
@@ -51,7 +51,7 @@ export default function ClipFinderPage() {
           const body = await res.json();
           if (res.status === 429 && attempt < 3) {
             attempt++;
-            for (let s = 65; s > 0; s -= 5) { setStatus(`Groq free-tier limit — continuing part ${i + 1} in ${s}s (keep this tab open)…`); await sleep(5000); }
+            for (let s = 65; s > 0; s -= 5) { setStatus(`Groq free-tier limit, continuing part ${i + 1} in ${s}s (keep this tab open)…`); await sleep(5000); }
             continue;
           }
           if (!res.ok) throw new Error(body.error || "Clip search failed.");
@@ -92,7 +92,7 @@ export default function ClipFinderPage() {
         <div className="hero-inner">
           <p className="kicker"></p>
           <h1>Clip Finder</h1>
-          <p>Upload Riverside&apos;s captions file and get the 5 best moments to cut — with exact times from the file itself.</p>
+          <p>Upload Riverside&apos;s captions file and get the 5 best moments to cut, with exact times from the file itself.</p>
         </div>
       </header>
 
@@ -119,7 +119,7 @@ export default function ClipFinderPage() {
             <p style={{ fontSize: 13.5 }}>
               {cues.length
                 ? `✅ ${cues.length} timed lines found · episode length ${formatTime(length)}${hasExactTimings(raw) ? "" : " · times estimated from speaker timestamps (within a few seconds)"}`
-                : "⚠️ No timestamps found in this file — export it from Riverside as .srt, or .txt with timestamps."}
+                : "⚠️ No timestamps found in this file, export it from Riverside as .srt, or .txt with timestamps."}
             </p>
           )}
           <button type="button" onClick={run} disabled={running || !raw}>{running ? "Finding clips…" : "Find the best clips"}</button>
@@ -130,7 +130,7 @@ export default function ClipFinderPage() {
           <div className="section">
             <h2 style={{ marginTop: 0 }}>Suggested clips</h2>
             <p className="hint" style={{ marginTop: 0 }}>
-              Times come from Riverside&apos;s file{hasExactTimings(raw) ? "" : " (estimated within speaker turns — check a few seconds either side)"}. Watch each moment before cutting — the AI picked them, a person decides.
+              Times come from Riverside&apos;s file{hasExactTimings(raw) ? "" : " (estimated within speaker turns, check a few seconds either side)"}. Watch each moment before cutting, the AI picked them, a person decides.
             </p>
             {clips.length === 0 && <p>No strong standalone moments found.</p>}
             {clips.map((c, i) => (
@@ -146,7 +146,7 @@ export default function ClipFinderPage() {
             ))}
             <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
               <button type="button" onClick={saveForReview} disabled={saved}>
-                {saved ? "✅ Saved — review it in Production Assistant" : "Save for review in Production Assistant"}
+                {saved ? "✅ Saved, review it in Production Assistant" : "Save for review in Production Assistant"}
               </button>
               <button type="button" style={{ background: "#F0F3F6", color: "var(--af-navy)" }}
                 onClick={() => { navigator.clipboard.writeText(clipsAsText(clips, guest)); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>

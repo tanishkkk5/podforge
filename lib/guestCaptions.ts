@@ -45,7 +45,7 @@ export interface CaptionKit {
   captions?: Captions | null;
   hashtags?: string | null;
   amazon_in_guest_posts?: boolean | null;
-  extras?: { spotifyUrl?: string; appleUrl?: string; episodePageUrl?: string; hostLinkedin?: string } | null;
+  extras?: { spotifyUrl?: string; appleUrl?: string; episodePageUrl?: string; hostLinkedin?: string; quoteTime?: string; explainer?: { term: string; kind: string; include?: boolean } | null } | null;
 }
 
 /** Strips em/en dashes used as punctuation (house rule). */
@@ -61,6 +61,10 @@ export function defaultBody(kit: CaptionKit, key: PostKey, p: Platform): string 
   const host = kit.host_name;
   const hook = stripMarks(kit.hook || "").trim();
   const first = (kit.takeaways || [])[0] || "";
+  const qt = kit.extras?.quoteTime?.trim();
+  const ex = kit.extras?.explainer && kit.extras.explainer.include !== false ? kit.extras.explainer : null;
+  const at = qt ? ` (at ${qt})` : "";
+  const swipe = ex ? (ex.kind === "tech" ? `\n\nSwipe to see what **${ex.term}** is, and what I think about it.` : `\n\nSwipe to see what **${ex.term}** means, with an example.`) : "";
   const t: Record<PostKey, Record<Platform, string>> = {
     title: {
       li: `**${hook}**\n\nSo what do you do instead?\n\n${host} and I dug into it on the Profit Streams® Podcast: "${kit.title}".`,
@@ -71,8 +75,8 @@ export function defaultBody(kit: CaptionKit, key: PostKey, p: Platform): string 
       ig: `**${hook}** 💡\n\nThe "why" is in my Profit Streams® Podcast episode with ${host}.`,
     },
     quote: {
-      li: `"${kit.best_quote}"\n\nI said this on the Profit Streams® Podcast with ${host}. **The story behind it** is in the full episode.`,
-      ig: `Said on the Profit Streams® Podcast 👆\n\n**The story behind it** is in my episode with ${host}.`,
+      li: `"${kit.best_quote}"\n\nI said this on the Profit Streams® Podcast with ${host}${at}. **The story behind it** is in the full episode.${swipe}`,
+      ig: `Said on the Profit Streams® Podcast${at} 👆\n\n**The story behind it** is in my episode with ${host}.${swipe}`,
     },
     takeaways: {
       li: `10 lessons from my conversation with ${host} on the Profit Streams® Podcast.\n\nLesson #1: ${first}\n\nSwipe for the other 9. **Which one would you push back on?**`,
@@ -161,7 +165,7 @@ export function postsWithImages(u: any): PostKey[] {
 export function postImages(u: any, key: PostKey): string[] {
   if (key === "title") return u?.title_card ? [u.title_card] : [];
   if (key === "summary") return u?.summary_card ? [u.summary_card] : [];
-  if (key === "quote") return u?.quote_card ? [u.quote_card] : [];
+  if (key === "quote") return [u?.quote_card, u?.explainer_card].filter(Boolean);
   if (key === "takeaways") return u?.takeaways || [];
   return u?.chapters || [];
 }

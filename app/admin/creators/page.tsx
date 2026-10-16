@@ -130,8 +130,8 @@ export default function CreatorKitsPage() {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Could not make the kit.");
       const notes: string[] = [];
-      if (body.usedFallback) notes.push("Some captions used a simple template (AI was unavailable) — worth a quick read before sending.");
-      if (body.missingVideo?.length) notes.push(`No video link yet for: ${body.missingVideo.join(", ")} — add it in the Content Library, then make the kit again.`);
+      if (body.usedFallback) notes.push("Some captions used a simple template (AI was unavailable), worth a quick read before sending.");
+      if (body.missingVideo?.length) notes.push(`No video link yet for: ${body.missingVideo.join(", ")}, add it in the Content Library, then make the kit again.`);
       setMade({ slug: body.slug, notes });
       load();
     } catch (err: any) {
@@ -192,7 +192,7 @@ export default function CreatorKitsPage() {
               <div className="field">
                 <label>Creator</label>
                 <select value={creatorId} onChange={(e) => pickCreator(e.target.value)}>
-                  <option value="">— choose —</option>
+                  <option value="">,  choose , </option>
                   {creators.map((c) => <option key={c.id} value={c.id}>{c.name}{c.topics.length ? ` · ${c.topics.join(", ")}` : ""}</option>)}
                 </select>
               </div>
@@ -237,7 +237,7 @@ export default function CreatorKitsPage() {
 
                   <div className="field">
                     <label>Listen link used in the credit line</label>
-                    <p className="sub">The show page by default — paste the episode&apos;s Spotify/Apple link instead if you have it.</p>
+                    <p className="sub">The show page by default, paste the episode&apos;s Spotify/Apple link instead if you have it.</p>
                     <input type="text" value={listenUrl} onChange={(e) => setListenUrl(e.target.value)} />
                   </div>
 

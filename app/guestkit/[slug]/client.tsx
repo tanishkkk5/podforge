@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BrandIcon, Check, Copy, Download, FolderOpen, IconLabel, Pencil, Sparkles } from "@/app/components/Icons";
+import { BrandIcon, Check, Copy, Download, FolderOpen, IconLabel, Pencil, RotateCcw, Sparkles } from "@/app/components/Icons";
 import {
   captionBody, captionFooter, Captions, CaptionKit, fullCaption, hashtagsOf, Platform, PostKey, POSTS, postImages, postsWithImages,
 } from "@/lib/guestCaptions";
@@ -24,10 +24,11 @@ const small = { padding: "6px 12px", fontSize: 12.5 } as const;
 const heroBtn = { background: "#fff", color: "var(--af-navy)" } as const;
 
 function PostCard({
-  n, kit, postKey, editable, onSaveBody,
+  n, kit, postKey, editable, onSaveBody, onKit,
 }: {
   n: number; kit: Kit; postKey: PostKey; editable: boolean;
   onSaveBody: (key: PostKey, p: Platform, text: string | null) => Promise<void>;
+  onKit: (k: any) => void;
 }) {
   const post = POSTS.find((p) => p.key === postKey)!;
   const images = postImages(kit.image_urls, postKey);
@@ -63,6 +64,31 @@ function PostCard({
     catch (e: any) { setMsg(`Error: ${e.message}`); } finally { setBusy(null); }
   }
 
+  // "New version": new content for THIS post (real quote, title, hook or takeaways) + rebuilt images (decision 0020)
+  const NEW_LABEL: Record<PostKey, string> = {
+    title: "New title + image", summary: "New big idea + image", quote: "New real quote + image",
+    takeaways: "New takeaways + images", chapters: "Rebuild image",
+  };
+  async function api(url: string, body?: any, method = "POST") {
+    const r = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+    const b = await r.json();
+    if (!r.ok) throw new Error(b.error || "Failed.");
+    return b;
+  }
+  async function newVersion() {
+    const base = `/api/guestkit/${kit.slug}`;
+    setBusy(postKey === "quote" ? "Finding another real quote and redrawing the card (about 20 seconds)…" : "Writing a new version and redrawing the images (about 30 seconds)…"); setMsg(null);
+    try {
+      const caps: any = JSON.parse(JSON.stringify(kit.captions || {})); delete caps[postKey];
+      if (postKey === "quote") { const b = await api(`${base}/refresh`, { what: "quote_card" }); onKit(b.kit); setMsg("New quote and card ready."); return; }
+      if (postKey === "title") { const b = await api(`${base}/refresh`, { what: "titles" }); await api(base, { title: b.titles[0], captions: caps }, "PATCH"); }
+      if (postKey === "summary") { const b = await api(`${base}/refresh`, { what: "description" }); await api(base, { hook: b.hook, summary: b.summary, captions: caps }, "PATCH"); }
+      if (postKey === "takeaways") { const b = await api(`${base}/refresh`, { what: "takeaways" }); await api(base, { takeaways: b.takeaways, captions: caps }, "PATCH"); }
+      const b = await api(`${base}/images`);
+      onKit(b.kit); setMsg("New version ready.");
+    } catch (e: any) { setMsg(`Error: ${e.message}`); } finally { setBusy(null); }
+  }
+
   const title = `${n}. ${post.label}${postKey === "takeaways" ? ` (${images.length} slides, post them together, in order)` : ""}`;
   return (
     <div className="section">
@@ -81,6 +107,13 @@ function PostCard({
           );
         })}
       </div>
+      {postKey === "takeaways" && images.length > 1 && (
+        <p style={{ margin: "-4px 0 16px" }}>
+          <a href={`/api/kitdownload/${kit.slug}?only=takeaways`}>
+            <button type="button"><IconLabel icon={Download}>Download all {images.length} slides + LinkedIn PDF carousel</IconLabel></button>
+          </a>
+        </p>
+      )}
 
       <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
         {(["li", "ig"] as Platform[]).map((p) => (
@@ -123,7 +156,8 @@ function PostCard({
           <span style={{ fontSize: 12, fontWeight: 700, color: "#B54708" }}>TEAM ONLY</span>
           <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy}
             onClick={() => { setDraft(captionBody(kit, postKey, platform)); setEditing(true); setMsg(null); }}><IconLabel icon={Pencil} size={14}>Edit</IconLabel></button>
-          <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={refresh}><IconLabel icon={Sparkles} size={14}>Refresh</IconLabel></button>
+          <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={refresh}><IconLabel icon={Sparkles} size={14}>New caption</IconLabel></button>
+          <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={newVersion}><IconLabel icon={RotateCcw} size={14}>{NEW_LABEL[postKey]}</IconLabel></button>
           {isEdited && <button type="button" style={{ ...btnGrey, ...small }} disabled={!!busy} onClick={() => save(null)}>Reset to default</button>}
         </div>
       )}
@@ -193,7 +227,7 @@ export default function GuestKitClient({ kit: initial, editable = false }: { kit
           </div>
         )}
         {keys.map((k, i) => (
-          <PostCard key={k} n={i + 1} kit={kit} postKey={k} editable={editable} onSaveBody={saveBody} />
+          <PostCard key={k} n={i + 1} kit={kit} postKey={k} editable={editable} onSaveBody={saveBody} onKit={(nk) => setKit((old) => ({ ...old, ...nk }))} />
         ))}
         <footer>Applied Frameworks · Profit Streams® Podcast</footer>
       </div>

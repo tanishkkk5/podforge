@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const EXTRA_KEYS = ["driveFolder", "episodePageUrl", "guestLinkedin", "guestOtherLinks", "hostLinkedin", "spotifyUrl", "appleUrl", "relatedEpisode", "lukePostUrl", "afPostUrl"];
 // Set by the server (Drive bundle / images); kept when the page saves extras
-const SERVER_EXTRA_KEYS = ["digest", "driveImagesFolder", "guestBundleUrl", "bundlePostsUrl", "bundleClipsUrl", "bundleThumbUrl", "bundleAudioUrl"];
+const SERVER_EXTRA_KEYS = ["digest", "quoteTime", "explainer", "usedQuotes", "quoteNeedsPick", "explainerTerm", "driveImagesFolder", "guestBundleUrl", "bundlePostsUrl", "bundleClipsUrl", "bundleThumbUrl", "bundleAudioUrl"];
 const POST_KEYS = ["title", "summary", "quote", "takeaways", "chapters"];
 const str = (v: unknown, max = 5000) => String(v ?? "").replace(/\s*[\u2014\u2013]\s*/g, ", ").trim().slice(0, max);
 
@@ -87,6 +87,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { slug: stri
     }
     if (typeof body.hashtags === "string") content.hashtags = str(body.hashtags, 300);
     if (typeof body.amazon_in_guest_posts === "boolean") content.amazon_in_guest_posts = body.amazon_in_guest_posts;
+    // Quote time + explainer slide live in extras (decision 0020)
+    const quoteExtras: Record<string, any> = {};
+    if (typeof body.quote_time === "string") quoteExtras.quoteTime = str(body.quote_time, 12);
+    if (typeof body.best_quote === "string") quoteExtras.quoteNeedsPick = "";
+    if (body.explainer === null) quoteExtras.explainer = null;
+    else if (body.explainer && typeof body.explainer === "object") {
+      const e = body.explainer;
+      quoteExtras.explainer = { term: str(e.term, 30), kind: e.kind === "tech" ? "tech" : "abbr", meaning: str(e.meaning, 220), example: str(e.example, 240), source: e.source === "episode" ? "episode" : "general", include: e.include !== false };
+    }
+    if (Object.keys(quoteExtras).length) {
+      content.extras = { ...((update.extras as any) || current?.extras || {}), ...quoteExtras };
+    }
     if (Object.keys(content).length && current?.status === "approved" && body.review !== "unapprove") {
       return NextResponse.json({ error: "This kit is approved, so it's final. Move it back to draft to edit it." }, { status: 409 });
     }

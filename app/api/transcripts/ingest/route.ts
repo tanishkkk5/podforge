@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const { error } = await supabase.from("transcript_chunks").insert(rows);
     if (error) {
       console.error("Insert failed:", error.message);
-      return NextResponse.json({ error: "Could not save chunks." }, { status: 500 });
+      return NextResponse.json({ error: `Could not save chunks: ${error.message}` }, { status: 500 });
     }
 
     return NextResponse.json({ status: "ok", chunksStored: rows.length });
